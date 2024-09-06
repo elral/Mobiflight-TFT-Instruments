@@ -46,6 +46,8 @@ namespace TurnCoordinator
     ********************************************************************************** */
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
+        pinMode(TFT_BL, OUTPUT);
+        
         tft = _tft;
         tft->setRotation(3);
         tft->setPivot(320, 160);

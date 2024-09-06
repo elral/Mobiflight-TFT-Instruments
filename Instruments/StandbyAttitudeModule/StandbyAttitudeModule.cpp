@@ -94,6 +94,8 @@ namespace StandbyAttitudeMonitor
 
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
+        pinMode(TFT_BL, OUTPUT);
+        
         tft.init();
         tft.setRotation(screenRotation);
         tft.fillScreen(PANEL_COLOR);

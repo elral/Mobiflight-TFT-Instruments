@@ -15,7 +15,6 @@ namespace VerticalSpeedIndicator
     uint16_t *mainSprPtr;
 
     // Function declaration
-    void  drawVSI();
     void  setVerticalSpeed(float value);
     void  setPowerSaveMode(bool enabled);
     void  setInstrumentBrightnessRatio(float ratio);
@@ -38,6 +37,8 @@ namespace VerticalSpeedIndicator
     ********************************************************************************** */
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
+        pinMode(TFT_BL, OUTPUT);
+
         tft = _tft;
         tft->setRotation(screenRotation);
         tft->setPivot(240, 160);
@@ -117,17 +118,6 @@ namespace VerticalSpeedIndicator
         if (millis() - startLogoMillis < 3000)
             return;
 
-        analogWrite(TFT_BL, instrumentBrightness);
-        if (prevScreenRotation != screenRotation) {
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
-        }
-
-        drawVSI();
-    }
-
-    void drawVSI()
-    {
         // Limit to -2000 to 2000 ft/sec
         if (VSIValue > 2000)
             VSIValue = 2000;
@@ -137,7 +127,6 @@ namespace VerticalSpeedIndicator
         VSImainSpr->fillSprite(TFT_BLACK);
         VSIAngle = scaleValue(VSIValue, -2000, 2000, 102, 438); // The needle starts at -90 degrees
         VSImainSpr->pushImage(0, 0, 320, 320, vsi_main_gauge);
-//        VSINeedleSpr->setSwapBytes(false);
         VSINeedleSpr->pushRotated(VSImainSpr, VSIAngle, TFT_BLACK);
         tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
     }
@@ -162,12 +151,18 @@ namespace VerticalSpeedIndicator
     {
         instrumentBrightnessRatio = ratio;
         instrumentBrightness      = round(scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255));
+        analogWrite(TFT_BL, instrumentBrightness);
     }
 
     void setScreenRotation(int rotation)
     {
         if (rotation == 1 || rotation == 3)
             screenRotation = rotation;
+    
+        if (prevScreenRotation != screenRotation) {
+            tft->setRotation(screenRotation);
+            prevScreenRotation = screenRotation;
+        }
     }
 
     // Scale function
@@ -175,5 +170,4 @@ namespace VerticalSpeedIndicator
     {
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
-
 }

@@ -24,7 +24,6 @@ namespace Altimeter
     uint16_t *mainSprPtr;
 
     // Function declarations
-    void  drawAll();
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
     void  setAltitude(float value);
     void  setBaro(float value);
@@ -59,6 +58,8 @@ namespace Altimeter
     ********************************************************************************** */
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
+        pinMode(TFT_BL, OUTPUT);
+        
         tft = _tft;
         tft->setRotation(3);
         tft->setPivot(320, 160);
@@ -171,26 +172,6 @@ namespace Altimeter
         if (millis() - startLogoMillis < 3000)
             return;
 
-        if (prevBaroMode != baroMode) {
-            if (baroMode == 1) {
-                baroSpr->pushImage(0, 0, 320, 320, baro_hpa);
-            } else
-                baroSpr->pushImage(0, 0, 320, 320, baro_inhg);
-
-            prevBaroMode = baroMode;
-        }
-
-        analogWrite(TFT_BL, instrumentBrightness);
-
-        if (prevScreenRotation != screenRotation) {
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
-        }
-        drawAll();
-    }
-
-    void drawAll()
-    {
         mainSpr->fillSprite(TFT_BLACK);
 
         altimeterSpr->pushImage(0, 0, 320, 320, altimeter_main);
@@ -216,7 +197,7 @@ namespace Altimeter
         needle100Spr->pushRotated(altimeterSpr, angleHundred, TFT_BLACK);
         altimeterSpr->pushToSprite(mainSpr, 0, 0, TFT_BLACK);
 
-        //mainSpr->pushSprite(80, 0);
+        // mainSpr->pushSprite(80, 0);
         tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
     }
 
@@ -233,12 +214,22 @@ namespace Altimeter
     void setBaro(float value)
     {
         baro = value;
+
+        if (prevBaroMode != baroMode) {
+            if (baroMode == 1) {
+                baroSpr->pushImage(0, 0, 320, 320, baro_hpa);
+            } else
+                baroSpr->pushImage(0, 0, 320, 320, baro_inhg);
+
+            prevBaroMode = baroMode;
+        }
     }
 
     void setInstrumentBrightnessRatio(float ratio)
     {
         instrumentBrightnessRatio = ratio;
         instrumentBrightness      = round(scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255));
+        analogWrite(TFT_BL, instrumentBrightness);
     }
 
     void setBaroMode(int mode)
@@ -261,6 +252,11 @@ namespace Altimeter
     {
         if (rotation == 1 || rotation == 3)
             screenRotation = rotation;
+        
+        if (prevScreenRotation != screenRotation) {
+            tft->setRotation(screenRotation);
+            prevScreenRotation = screenRotation;
+        }
     }
 
 }
