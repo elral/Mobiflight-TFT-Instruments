@@ -30,7 +30,7 @@ extern MFEEPROM MFeeprom;
 #define MEMLEN_STRING_BUFFER 40
 
 TFT_eSPI *tft;
-// Sprites for Instruments, max. number which can be usedfor an instrument
+// Sprites for Instruments, max. number which can be used for an instrument
 TFT_eSprite spr[17] = {TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
                        TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
                        TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),

@@ -10,11 +10,14 @@ namespace AttitudeIndicator
 
 #define PANEL_COLOR 0x7BEE
 
-    TFT_eSPI tft = TFT_eSPI();
-    TFT_eSprite mainSpr       = TFT_eSprite(&tft); // Sprite to hold everything
-    TFT_eSprite pitchScaleSpr = TFT_eSprite(&tft); // Sprite to hold everything
-    TFT_eSprite rollScaleSpr  = TFT_eSprite(&tft); // Sprite to hold everything
-    TFT_eSprite bezelSpr      = TFT_eSprite(&tft); // Sprite to hold everything
+    TFT_eSPI    *tft;
+    TFT_eSprite *mainSpr;
+    TFT_eSprite *pitchScaleSpr;
+    TFT_eSprite *rollScaleSpr;
+    TFT_eSprite *bezelSpr;
+    TFT_eSprite *backgroundSpr;
+    // Pointers to start of Sprites in RAM (these are then "image" pointers)
+    uint16_t *mainSprPtr;
 
     // Function declarations
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
@@ -26,14 +29,15 @@ namespace AttitudeIndicator
     void  setInstrumentBrightnessRatio(float ratio);
 
     // Variables
-    float pitch                     = 0; // pitch value from sim
-    float roll                      = 0; // roll value from sim
-    float pitchPosition             = 0; // pitch Postion on the screen based on the pitch angle
-    bool  powerSaveFlag             = false;
-    float instrumentBrightnessRatio = 1;
-    int   instrumentBrightness      = 255;
-    int   screenRotation            = 3;
-    int   prevScreenRotation        = 3;
+    float    pitch                     = 0; // pitch value from sim
+    float    roll                      = 0; // roll value from sim
+    float    pitchPosition             = 0; // pitch Postion on the screen based on the pitch angle
+    bool     powerSaveFlag             = false;
+    float    instrumentBrightnessRatio = 1;
+    int      instrumentBrightness      = 255;
+    int      screenRotation            = 3;
+    int      prevScreenRotation        = 3;
+    uint32_t startLogoMillis           = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -42,43 +46,56 @@ namespace AttitudeIndicator
 
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
-        tft.init();
-        tft.setRotation(3);
-        tft.fillScreen(PANEL_COLOR);
-        tft.setSwapBytes(true);
-        tft.pushImage(160, 80, 160, 160, logo);
-        delay(3000);
-        tft.fillScreen(TFT_BLACK);
-        tft.setSwapBytes(false);
-        tft.setPivot(240, 160);
+        tft = _tft;
+        tft->setRotation(3);
+        tft->setSwapBytes(true);
+        tft->setPivot(240, 160);
+        tft->fillScreen(TFT_BLACK);
+        tft->startWrite(); // TFT chip select held low permanently
 
-        mainSpr.createSprite(320, 320);
-        mainSpr.setSwapBytes(true);
-        mainSpr.fillSprite(TFT_BLACK);
-        mainSpr.setPivot(160, 160);
+        mainSpr       = &sprites[0];
+        pitchScaleSpr = &sprites[1];
+        rollScaleSpr  = &sprites[2];
+        bezelSpr      = &sprites[3];
+        backgroundSpr = &sprites[4];
 
-        rollScaleSpr.createSprite(roll_scale_width, roll_scale_height);
-        rollScaleSpr.setSwapBytes(false);
-        rollScaleSpr.fillSprite(TFT_BLACK);
+        mainSprPtr = (uint16_t *)mainSpr->createSprite(320, 320);
+        mainSpr->setSwapBytes(true);
+        mainSpr->fillSprite(TFT_BLACK);
+        mainSpr->setPivot(160, 160);
 
-        pitchScaleSpr.createSprite(pitch_scale_width, pitch_scale_height);
-        pitchScaleSpr.setSwapBytes(false);
-        pitchScaleSpr.fillSprite(TFT_BLACK);
-        pitchScaleSpr.pushImage(0, 0, pitch_scale_width, pitch_scale_height, pitch_scale);
+        backgroundSpr->createSprite(320, 320);
+        backgroundSpr->setSwapBytes(true);
+        backgroundSpr->fillSprite(TFT_BLACK);
 
-        bezelSpr.createSprite(320, 320);
-        bezelSpr.setSwapBytes(true);
-        bezelSpr.fillSprite(TFT_BLACK);
-        bezelSpr.pushImage(0, 0, bezel_width, bezel_height, bezel);
-        bezelSpr.setPivot(160, 160);
+        rollScaleSpr->createSprite(roll_scale_width, roll_scale_height);
+        rollScaleSpr->setSwapBytes(false);
+        rollScaleSpr->fillSprite(TFT_BLACK);
+
+        pitchScaleSpr->createSprite(pitch_scale_width, pitch_scale_height);
+        pitchScaleSpr->setSwapBytes(false);
+        pitchScaleSpr->fillSprite(TFT_BLACK);
+        pitchScaleSpr->pushImage(0, 0, pitch_scale_width, pitch_scale_height, pitch_scale);
+
+        bezelSpr->createSprite(320, 320);
+        bezelSpr->setSwapBytes(true);
+        bezelSpr->fillSprite(TFT_BLACK);
+        bezelSpr->pushImage(0, 0, bezel_width, bezel_height, bezel);
+        bezelSpr->setPivot(160, 160);
+
+        tft->pushImage(160, 80, 160, 160, logo);
+        startLogoMillis = millis();
+        tft->setSwapBytes(false);
+        drawAll();
     }
 
     void stop()
     {
-        mainSpr.deleteSprite();
-        pitchScaleSpr.deleteSprite();
-        rollScaleSpr.deleteSprite();
-        bezelSpr.deleteSprite();
+        tft->endWrite();
+        mainSpr->deleteSprite();
+        pitchScaleSpr->deleteSprite();
+        rollScaleSpr->deleteSprite();
+        bezelSpr->deleteSprite();
     }
 
     void set(int16_t messageID, char *setPoint)
@@ -94,35 +111,27 @@ namespace AttitudeIndicator
 
         ********************************************************************************** */
         int32_t data = strtoul(setPoint, NULL, 10);
-        // uint16_t output;
-        // do something according your messageID
+
         switch (messageID) {
         case -1:
-            // // tbd., get's called when Mobiflight shuts down
             setPowerSaveMode(true);
             break;
         case -2:
-            // // tbd., get's called when PowerSavingMode is entered
             if (data == 1)
                 setPowerSaveMode(true);
             else if (data == 0)
                 setPowerSaveMode(false);
             break;
         case 0:
-            // output = (uint16_t)data;
-            // data   = output;
             setPitch(atof(setPoint));
             break;
         case 1:
-            /* code */
             setRoll(atof(setPoint));
             break;
         case 2:
-            /* code */
             setInstrumentBrightnessRatio(atof(setPoint));
             break;
         case 100:
-            /* code */
             setScreenRotation(atoi(setPoint));
             break;
         default:
@@ -132,28 +141,14 @@ namespace AttitudeIndicator
 
     void update()
     {
+        // show start up logo for 3 seconds
+        if (millis() - startLogoMillis < 3000)
+            return;
 
-        // Do something which is required regulary
-
-        //   if(powerSaveFlag == false)
-        //   {
-        //     analogWrite(TFT_BL, instrumentBrightness);
-
-        //     if(prevScreenRotation != screenRotation)
-        //     {
-        //         tft.setRotation(screenRotation);
-        //         prevScreenRotation = screenRotation;
-        //     }
-        //     drawAll();
-
-        //    }
-
-        //    else digitalWrite(TFT_BL, LOW);
-
-        analogWrite(TFT_BL, instrumentBrightness);
+//        analogWrite(TFT_BL, instrumentBrightness);
 
         if (prevScreenRotation != screenRotation) {
-            tft.setRotation(screenRotation);
+            tft->setRotation(screenRotation);
             prevScreenRotation = screenRotation;
         }
         drawAll();
@@ -161,23 +156,31 @@ namespace AttitudeIndicator
 
     void drawAll()
     {
+        mainSpr->fillSprite(TFT_BLACK);
+        backgroundSpr->fillSprite(TFT_BLACK);
 
         pitchPosition = round(scaleValue(pitch, -40, 40, -80, 80));
-        mainSpr.pushImage(20, 20, 280, 280, background);
-        pitchScaleSpr.pushImage(0, 0, pitch_scale_width, pitch_scale_height, pitch_scale);
+        backgroundSpr->pushImage(20, 20, 280, 280, background);
 
-        mainSpr.setViewport(30, 30, 260, 260);
-        pitchScaleSpr.pushToSprite(&mainSpr, 28, pitchPosition + 58, TFT_BLACK);
+        pitchScaleSpr->pushImage(0, 0, pitch_scale_width, pitch_scale_height, pitch_scale);
 
-        mainSpr.setViewport(0, 0, 320, 320);
-        rollScaleSpr.pushImage(0, 0, roll_scale_width, roll_scale_height, roll_scale);
-        rollScaleSpr.pushToSprite(&mainSpr, 20, 20, TFT_BLACK);
+        backgroundSpr->setViewport(30, 30, 260, 260);
+        pitchScaleSpr->pushToSprite(backgroundSpr, 28, pitchPosition + 58, TFT_BLACK);
 
-        mainSpr.setPivot(160, 160);
-        mainSpr.setSwapBytes(true);
+        backgroundSpr->setViewport(0, 0, 320, 320);
+        rollScaleSpr->pushImage(0, 0, roll_scale_width, roll_scale_height, roll_scale);
+        rollScaleSpr->pushToSprite(backgroundSpr, 20, 20, TFT_BLACK);
 
-        bezelSpr.pushRotated(&mainSpr, roll, TFT_BLACK);
-        mainSpr.pushRotated(-roll, TFT_BLACK);
+        backgroundSpr->setPivot(160, 160);
+        backgroundSpr->setSwapBytes(true);
+
+        bezelSpr->pushRotated(backgroundSpr, roll, TFT_BLACK);
+
+        // mainSpr->pushRotated(-roll, TFT_BLACK);
+        // pushRotated is not available for DMA, use instead a helper sprite
+        // (background) and copy this one as last step rotated to the main sprite
+        backgroundSpr->pushRotated(mainSpr, -roll, TFT_BLACK);
+        tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
     }
 
     void setPitch(float value)

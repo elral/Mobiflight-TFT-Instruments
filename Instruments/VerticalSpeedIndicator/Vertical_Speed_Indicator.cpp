@@ -11,8 +11,8 @@ namespace VerticalSpeedIndicator
     TFT_eSPI    *tft;
     TFT_eSprite *VSImainSpr;
     TFT_eSprite *VSINeedleSpr;
-    // Pointers to start of Sprites in RAM (these are then "image" pointers)
-    uint16_t *PtrVSIsprites[2];
+    // Pointer to start of Sprite in RAM (these are then "image" pointers)
+    uint16_t *mainSprPtr;
 
     // Function declaration
     void  drawVSI();
@@ -40,7 +40,6 @@ namespace VerticalSpeedIndicator
     {
         tft = _tft;
         tft->setRotation(screenRotation);
-        tft->fillScreen(PANEL_COLOR);
         tft->setPivot(240, 160);
         tft->setSwapBytes(true);
         tft->setViewport(0, 0, 480, 320, false);
@@ -50,13 +49,13 @@ namespace VerticalSpeedIndicator
         VSImainSpr   = &sprites[0];
         VSINeedleSpr = &sprites[1];
 
-        PtrVSIsprites[0] = (uint16_t *)VSImainSpr->createSprite(320, 320);
+        mainSprPtr = (uint16_t *)VSImainSpr->createSprite(320, 320);
         VSImainSpr->setSwapBytes(false);
         VSImainSpr->fillSprite(TFT_BLACK);
         VSImainSpr->pushImage(0, 0, 320, 320, vsi_main_gauge);
         VSImainSpr->setPivot(160, 160);
 
-        PtrVSIsprites[1] = (uint16_t *)VSINeedleSpr->createSprite(vsi_needle_width, vsi_needle_height);
+        VSINeedleSpr->createSprite(vsi_needle_width, vsi_needle_height);
         VSINeedleSpr->setSwapBytes(false);
         VSINeedleSpr->fillScreen(TFT_BLACK);
         VSINeedleSpr->pushImage(0, 0, vsi_needle_width, vsi_needle_height, vsi_needle);
@@ -138,9 +137,9 @@ namespace VerticalSpeedIndicator
         VSImainSpr->fillSprite(TFT_BLACK);
         VSIAngle = scaleValue(VSIValue, -2000, 2000, 102, 438); // The needle starts at -90 degrees
         VSImainSpr->pushImage(0, 0, 320, 320, vsi_main_gauge);
-        VSINeedleSpr->setSwapBytes(false);
+//        VSINeedleSpr->setSwapBytes(false);
         VSINeedleSpr->pushRotated(VSImainSpr, VSIAngle, TFT_BLACK);
-        tft->pushImageDMA(80, 0, 320, 320, PtrVSIsprites[0]);
+        tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
     }
 
     void setVerticalSpeed(float value)
