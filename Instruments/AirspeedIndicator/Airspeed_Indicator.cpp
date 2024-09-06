@@ -13,18 +13,15 @@ namespace AirspeedIndicator
 #define digits      NotoSansMonoSCB20
 #define PANEL_COLOR 0x7BEE
 
-    TFT_eSPI tft = TFT_eSPI();
-    TFT_eSprite mainSpr         = TFT_eSprite(&tft); // Main Sprite
-    TFT_eSprite ASIneedleSpr    = TFT_eSprite(&tft); // Airspeed Indicator Gauge Sprite
-    TFT_eSprite asiInfoSpr      = TFT_eSprite(&tft); // Sprite to hold Air Speed Value
-    TFT_eSprite tasInfoSpr      = TFT_eSprite(&tft); // Sprite to hold True Air Speed Value
-    TFT_eSprite altitudeInfoSpr = TFT_eSprite(&tft); // Sprite to hold Altitude
-    TFT_eSprite vsiInfoSpr      = TFT_eSprite(&tft); // Sprite to hold Vertical Speed Info
-    TFT_eSprite baroInfoSpr     = TFT_eSprite(&tft); // Sprite to hold Barometric Pressure Info
+    TFT_eSPI    *tft;
+    TFT_eSprite *mainSpr;
+    TFT_eSprite *ASIneedleSpr;
+    TFT_eSprite *baroInfoSpr;
+    // Pointers to start of Sprites in RAM (these are then "image" pointers)
+    uint16_t *mainSprPtr;
 
     // Function declarations
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
-    void  drawASIGauge();
     void  setInstrumentBrightnessRatio(float ratio);
     void  setAirspeed(float value);
     void  setPowerSave(bool enabled);
@@ -36,10 +33,10 @@ namespace AirspeedIndicator
     float    instrumentBrightnessRatio = 0;
     float    ASIneedleRotation         = 0; // angle of rotation of needle based on the Indicated AirSpeed
     float    airSpeed                  = 0;
-    bool     powerSaveFlag;
-    int      screenRotation     = 3;
-    int      prevScreenRotation = 3;
-    int      data;
+    bool     powerSaveFlag             = false;
+    int      screenRotation            = 3;
+    int      prevScreenRotation        = 3;
+    uint32_t startLogoMillis           = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -47,25 +44,38 @@ namespace AirspeedIndicator
     ********************************************************************************** */
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
-        tft.init();
-        tft.setRotation(3);
-        tft.fillScreen(PANEL_COLOR);
-        tft.setPivot(320, 160);
-        tft.setSwapBytes(true);
-        tft.pushImage(160, 80, 160, 160, logo);
-        delay(3000);
-        tft.fillScreen(TFT_BLACK);
+        tft = _tft;
+        tft->setRotation(3);
+        tft->fillScreen(PANEL_COLOR);
+        tft->setPivot(320, 160);
+        tft->setSwapBytes(true);
+        tft->fillScreen(TFT_BLACK);
+        tft->startWrite(); // TFT chip select held low permanently
+
+        mainSpr       = &sprites[0];
+        ASIneedleSpr = &sprites[1];
+        baroInfoSpr  = &sprites[2];
+
+        mainSprPtr = (uint16_t *)mainSpr->createSprite(320, 320);
+        mainSpr->setSwapBytes(true);
+        mainSpr->setPivot(160, 160);
+
+        ASIneedleSpr->createSprite(asi_needle_width, asi_needle_height);
+        ASIneedleSpr->setSwapBytes(false);
+        ASIneedleSpr->setPivot(asi_needle_width / 2, 133);
+        ASIneedleSpr->setSwapBytes(true);
+
+        tft->pushImage(160, 80, 160, 160, logo);
+        startLogoMillis = millis();
+        tft->setSwapBytes(false);
     }
 
     void stop()
     {
-        mainSpr.deleteSprite();
-        ASIneedleSpr.deleteSprite();
-        asiInfoSpr.deleteSprite();
-        tasInfoSpr.deleteSprite();
-        altitudeInfoSpr.deleteSprite();
-        vsiInfoSpr.deleteSprite();
-        baroInfoSpr.deleteSprite();
+        tft->endWrite();
+        mainSpr->deleteSprite();
+        ASIneedleSpr->deleteSprite();
+        baroInfoSpr->deleteSprite();
     }
 
     void set(int16_t messageID, char *setPoint)
@@ -80,15 +90,12 @@ namespace AirspeedIndicator
             Put in your code to enter this mode (e.g. clear a display)
 
         ********************************************************************************** */
-
+        int32_t data = atoi(setPoint);
         // do something according your messageID
         switch (messageID) {
         case -1:
-            // tbd., get's called when Mobiflight shuts down
             setPowerSave(true);
         case -2:
-            // tbd., get's called when PowerSavingMode is entered
-            data = atoi(setPoint);
             setPowerSave((bool)atoi(setPoint));
             break;
         case 0:
@@ -109,35 +116,24 @@ namespace AirspeedIndicator
 
     void update()
     {
+        // show start up logo for 3 seconds
+        if (millis() - startLogoMillis < 3000)
+            return;
+       
+        mainSpr->fillSprite(TFT_BLACK);
+        mainSpr->pushImage(0, 0, 320, 320, asi_main_gauge);
+        
+        ASIneedleSpr->fillSprite(TFT_BLACK);
+        ASIneedleSpr->pushImage(0, 0, asi_needle_width, asi_needle_height, asi_needle);
+        ASIneedleSpr->pushRotated(mainSpr, ASIneedleRotation, TFT_BLACK);
 
-        // Do something which is required regulary
+        tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
 
-        // if (!powerSaveFlag)
-        // {
-        //     if(prevScreenRotation != screenRotation)
-        //     {
-        //         tft.fillScreen(TFT_BLACK);
-        //         prevScreenRotation = screenRotation;
-        //         tft.setRotation(screenRotation);
-        //     }
-
-        //     drawASIGauge();
-        //     analogWrite(TFT_BL, instrumentBrightness);
-        // }
-        // else
-        //     digitalWrite(TFT_BL, LOW);
-        analogWrite(TFT_BL, instrumentBrightness);
-        if (prevScreenRotation != screenRotation) {
-            tft.fillScreen(TFT_BLACK);
-            prevScreenRotation = screenRotation;
-            tft.setRotation(screenRotation);
-        }
-
-        drawASIGauge();
     }
 
-    void drawASIGauge() // Draw the Airspeed Indicator Gauge and other information
+    void setAirspeed(float value)
     {
+        airSpeed = value;
 
         if (airSpeed <= 40)
             ASIneedleRotation = scaleValue(airSpeed, 0, 40, 0, 20);
@@ -145,37 +141,14 @@ namespace AirspeedIndicator
             ASIneedleRotation = scaleValue(airSpeed, 41, 200, 21, 321);
         else if (airSpeed > 200)
             airSpeed = 200;
-
-        mainSpr.createSprite(320, 320);
-        mainSpr.setSwapBytes(true);
-        mainSpr.fillSprite(TFT_BLACK);
-        mainSpr.pushImage(0, 0, 320, 320, asi_main_gauge);
-        mainSpr.setPivot(160, 160);
-
-        ASIneedleSpr.createSprite(asi_needle_width, asi_needle_height);
-        ASIneedleSpr.fillSprite(TFT_BLACK);
-        ASIneedleSpr.pushImage(0, 0, asi_needle_width, asi_needle_height, asi_needle);
-        ASIneedleSpr.setSwapBytes(false);
-        ASIneedleSpr.setPivot(asi_needle_width / 2, 133);
-        ASIneedleSpr.pushRotated(&mainSpr, ASIneedleRotation, TFT_BLACK);
-        ASIneedleSpr.setSwapBytes(true);
-        ASIneedleSpr.deleteSprite();
-
-        mainSpr.pushSprite(80, 0, TFT_BLACK);
-        mainSpr.deleteSprite();
-        analogWrite(TFT_BL, instrumentBrightness);
-
-    }
-
-    void setAirspeed(float value)
-    {
-        airSpeed = value;
     }
 
     void setInstrumentBrightnessRatio(float ratio)
     {
         instrumentBrightnessRatio = ratio;
         instrumentBrightness      = round(scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255));
+
+//        analogWrite(TFT_BL, instrumentBrightness);
     }
 
     void setPowerSave(bool enabled)
@@ -193,6 +166,12 @@ namespace AirspeedIndicator
     {
         if (rotation == 1 || rotation == 3)
             screenRotation = rotation;
+    
+        if (prevScreenRotation != screenRotation) {
+            tft->fillScreen(TFT_BLACK);
+            prevScreenRotation = screenRotation;
+            tft->setRotation(screenRotation);
+        }
     }
 
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max)

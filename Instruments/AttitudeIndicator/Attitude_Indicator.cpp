@@ -21,7 +21,6 @@ namespace AttitudeIndicator
 
     // Function declarations
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
-    void  drawAll();
     void  setPitch(float value);
     void  setRoll(float value);
     void  setScreenRotation(int rotation);
@@ -144,17 +143,6 @@ namespace AttitudeIndicator
         if (millis() - startLogoMillis < 3000)
             return;
 
-//        analogWrite(TFT_BL, instrumentBrightness);
-
-        if (prevScreenRotation != screenRotation) {
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
-        }
-        drawAll();
-    }
-
-    void drawAll()
-    {
         mainSpr->fillSprite(TFT_BLACK);
         backgroundSpr->fillSprite(TFT_BLACK);
 
@@ -201,6 +189,11 @@ namespace AttitudeIndicator
     {
         if (rotation == 1 || rotation == 3)
             screenRotation = rotation;
+        
+        if (prevScreenRotation != screenRotation) {
+            tft->setRotation(screenRotation);
+            prevScreenRotation = screenRotation;
+        }
     }
 
     void setPowerSaveMode(bool enabled)
@@ -215,6 +208,7 @@ namespace AttitudeIndicator
     {
         instrumentBrightnessRatio = ratio;
         instrumentBrightness      = round(scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255));
+        analogWrite(TFT_BL, instrumentBrightness);
     }
 
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max)
