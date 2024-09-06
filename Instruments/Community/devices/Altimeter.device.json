@@ -1,0 +1,44 @@
+{
+    "$schema": "./mfdevice.schema.json",
+    "Info": {
+      "Label": "Altimeter ESP32-S3",
+      "Type": "Altimeter",
+      "Author": "Save Sabanal",
+      "URL": "https://github.com/savesabanal01/Mobiflight-Altimeter-ESP32-S3/tree/Altimeter",
+      "Version" : "1.0.0"
+    },
+    "Config": {
+      "Pins": [
+        "Pin 1"
+      ],
+      "isI2C": false
+    },
+    "MessageTypes": [
+      {
+        "id": 0,
+        "label": "Show Altitude Value",
+        "description": "$ will be displayed as Altitude value"
+      },
+      {
+        "id": 1,
+        "label": "Show Baro Value",
+        "description": "$ will be displayed as Baro value"
+      },
+      {
+        "id": 2,
+        "label": "Show Instrument Brightness Ratio",
+        "description": "$ will be displayed as Instrument Brightness Ratio"
+      },
+      {
+        "id": 3,
+        "label": "Show Baro Mode ",
+        "description": "0 = inHg, 1 = hpa"
+      },
+      {
+        "id": 100,
+        "label": "Set Rotation",
+        "description": "1 = Normal, 3 = Rotation 180"
+      }
+    ]
+  }
+  

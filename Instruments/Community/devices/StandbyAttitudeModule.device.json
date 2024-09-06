@@ -1,0 +1,66 @@
+{
+    "$schema": "./mfdevice.schema.json",
+    "Info": {
+      "Label": "Standby Attitude Module ESP32-S3",
+      "Type": "StandbyAttitudeModule",
+      "Author": "Save Sabanal",
+      "URL": "https://github.com/savesabanal01/Mobiflight-StandbyAttitudeModule-ESP32-S3/tree/ESP32_support",
+      "Version" : "1.0.0"
+    },
+    "Config": {
+      "Pins": [
+        "Pin 1"
+      ],
+      "isI2C": false
+    },
+    "MessageTypes": [
+      {
+        "id": 0,
+        "label": "Show Pitch Value Value",
+        "description": "$ will be displayed as Pitch value"
+      },
+      {
+        "id": 1,
+        "label": "Show Roll Value",
+        "description": "$ will be displayed as Roll value"
+      },
+      {
+        "id": 2,
+        "label": "Show Slip Angle Value",
+        "description": "$ will be displayed as Slip Angle value"
+      },
+      {
+        "id": 3,
+        "label": "Show Airspeed Value",
+        "description": "$ will be displayed as Airspeed value"
+      },
+      {
+        "id": 4,
+        "label": "Show Altitude Value",
+        "description": "$ will be displayed as Altitude value"
+      },
+      {
+        "id": 5,
+        "label": "Show Heading Value",
+        "description": "$ will be displayed as Heading value"
+      },
+      {
+        "id": 6,
+        "label": "Show Baro Value",
+        "description": "$ will be displayed as Baro value"
+      },
+      {
+        "id": 7,
+        "label": "Show Instrument Brightness Ratio",
+        "description": "$ will be displayed as Instrument Brightness value (0 - 1)"
+      }
+      ,
+      {
+        "id": 100,
+        "label": "Set Screen Rotation",
+        "description": "1 = Normal, 3 = Flipped. Do not use other values!"
+      }
+
+    ]
+  }
+  

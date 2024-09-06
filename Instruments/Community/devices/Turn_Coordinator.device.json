@@ -1,0 +1,39 @@
+{
+    "$schema": "./mfdevice.schema.json",
+    "Info": {
+      "Label": "Turn Coordinator ESP32-S3",
+      "Type": "Turn_Coordinator",
+      "Author": "Save Sabanal",
+      "URL": "https://github.com/savesabanal01/Mobiflight-Turn_Coordinator_ESP32-S3/tree/Turn_Coordinator",
+      "Version" : "1.0.0"
+    },
+    "Config": {
+      "Pins": [
+        "Pin 1"
+      ],
+      "isI2C": false
+    },
+    "MessageTypes": [
+      {
+        "id": 0,
+        "label": "Show Turn Angle",
+        "description": "$ will be displayed as Turn Angle"
+      },
+      {
+        "id": 1,
+        "label": "Show Slip Angle",
+        "description": "$ will be displayed as Slip Angle"
+      },
+      {
+        "id": 2,
+        "label": "Show Instrument Brightness Ratio",
+        "description": "$ will be displayed as Instrument Brightness Ratio"
+      },
+      {
+        "id": 100,
+        "label": "Set Rotation",
+        "description": "1 = Normal, 3 = Rotation 180"
+      }
+    ]
+  }
+  

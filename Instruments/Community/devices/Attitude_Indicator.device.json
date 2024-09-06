@@ -1,0 +1,39 @@
+{
+    "$schema": "./mfdevice.schema.json",
+    "Info": {
+      "Label": "Attitude Indicator ESP32-S3",
+      "Type": "Attitude_Indicator",
+      "Author": "Save Sabanal",
+      "URL": "https://github.com/savesabanal01/Mobiflight-Attitude_Indicator-ESP32-S3/tree/Attitude_Indicator",
+      "Version" : "1.0.0"
+    },
+    "Config": {
+      "Pins": [
+        "Pin 1"
+      ],
+      "isI2C": false
+    },
+    "MessageTypes": [
+      {
+        "id": 0,
+        "label": "Show Pitch Value",
+        "description": "$ will be displayed as Pitch value"
+      },
+      {
+        "id": 1,
+        "label": "Show Roll Value",
+        "description": "$ will be displayed as Roll value"
+      },
+      {
+        "id": 2,
+        "label": "Show Instrument Brightness Ratio",
+        "description": "$ will be displayed as Instrument Brightness Ratio"
+      },
+      {
+        "id": 100,
+        "label": "Set Rotation",
+        "description": "1 = Normal, 3 = Rotation 180"
+      }
+    ]
+  }
+  
