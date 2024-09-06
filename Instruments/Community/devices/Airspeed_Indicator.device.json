@@ -4,7 +4,7 @@
       "Label": "Airspeed Indicator ESP32-S3",
       "Type": "Airspeed_Indicator",
       "Author": "Save Sabanal",
-      "URL": "https://github.com/savesabanal01",
+      "URL": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",
       "Version" : "1.0.0"
     },
     "Config": {

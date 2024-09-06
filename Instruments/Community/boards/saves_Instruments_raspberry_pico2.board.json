@@ -25,13 +25,8 @@
       "FriendlyName": "MobiFlight Instruments RaspiPico2",
       "LatestFirmwareVersion": "0.9.0",
       "MobiFlightType": "Mobiflight Intruments RaspiPico2",
-      "ResetFirmwareFile": "reset.raspberry_pico_flash_nuke.uf2",
+      "ResetFirmwareFile": "reset.tbd.uf2",
       "CustomDeviceTypes": [
-        "ARTIFICIAL_HORIZONT_RECT",
-        "ARTIFICIAL_HORIZONT_ROUND",
-        "COMPASS",
-        "BOUNCING_CIRCLES",
-        "INSTRUMENT_DEMO",
         "StandbyAttitudeModule",
         "Airspeed_Indicator",
         "Attitude_Indicator",
@@ -41,9 +36,9 @@
       ],
       "Community": {
         "Project": "Displays for Pico2",
-        "Website": "https://YourWebsite.com",
-        "Docs": "https://YourWebsite.com",
-        "Support": "https://YourWebsite.com"
+        "Website": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",
+        "Docs": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",
+        "Support": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",
       }
     },
     "ModuleLimits": {

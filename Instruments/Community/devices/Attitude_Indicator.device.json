@@ -4,7 +4,7 @@
       "Label": "Attitude Indicator ESP32-S3",
       "Type": "Attitude_Indicator",
       "Author": "Save Sabanal",
-      "URL": "https://github.com/savesabanal01/Mobiflight-Attitude_Indicator-ESP32-S3/tree/Attitude_Indicator",
+      "URL": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",
       "Version" : "1.0.0"
     },
     "Config": {

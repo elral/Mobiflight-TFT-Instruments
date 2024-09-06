@@ -4,7 +4,7 @@
       "Label": "Standby Attitude Module ESP32-S3",
       "Type": "StandbyAttitudeModule",
       "Author": "Save Sabanal",
-      "URL": "https://github.com/savesabanal01/Mobiflight-StandbyAttitudeModule-ESP32-S3/tree/ESP32_support",
+      "URL": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",
       "Version" : "1.0.0"
     },
     "Config": {

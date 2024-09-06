@@ -4,7 +4,7 @@
       "Label": "Turn Coordinator ESP32-S3",
       "Type": "Turn_Coordinator",
       "Author": "Save Sabanal",
-      "URL": "https://github.com/savesabanal01/Mobiflight-Turn_Coordinator_ESP32-S3/tree/Turn_Coordinator",
+      "URL": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",
       "Version" : "1.0.0"
     },
     "Config": {

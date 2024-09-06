@@ -4,7 +4,7 @@
       "Label": "Altimeter ESP32-S3",
       "Type": "Altimeter",
       "Author": "Save Sabanal",
-      "URL": "https://github.com/savesabanal01/Mobiflight-Altimeter-ESP32-S3/tree/Altimeter",
+      "URL": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",
       "Version" : "1.0.0"
     },
     "Config": {
