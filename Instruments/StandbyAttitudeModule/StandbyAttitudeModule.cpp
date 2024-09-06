@@ -30,24 +30,30 @@ namespace StandbyAttitudeMonitor
 #define digitsM     B612Font20
 #define digitsL     B612Font28
 
-    TFT_eSPI    tft                 = TFT_eSPI();
-    TFT_eSprite AttitudeIndSpr      = TFT_eSprite(&tft); // Sprite to hold attitude Indicator
-    TFT_eSprite AttitudeIndBackSpr  = TFT_eSprite(&tft); // Sprite to hold attitude Indicator to fit only 240x320
-    TFT_eSprite AttitudeIndBackSpr2 = TFT_eSprite(&tft); // Sprite to hold attitude Indicator to fit only 240x320
-    TFT_eSprite planeSpr            = TFT_eSprite(&tft); // Plane Indicator Sprite
-    TFT_eSprite rollScaleSpr        = TFT_eSprite(&tft); // Roll Scale Sprite
-    TFT_eSprite pitchScaleSpr       = TFT_eSprite(&tft); // Pitch Scale Sprite
-    TFT_eSprite rollIndicatorSpr    = TFT_eSprite(&tft); // Roll Indicator Sprite
-    TFT_eSprite slipIndicatorSpr    = TFT_eSprite(&tft); // Slip Indicator Sprite
-    TFT_eSprite ballSpr             = TFT_eSprite(&tft); // Ball Sprite
-    TFT_eSprite chevronUpSpr        = TFT_eSprite(&tft); // Chevron pointing up
-    TFT_eSprite chevronDownSpr      = TFT_eSprite(&tft); // Chevron pointing down
-    TFT_eSprite SpeedIndicatorSpr   = TFT_eSprite(&tft); // Sprite to hold the speed indicator
-    TFT_eSprite AltitudeIndSpr      = TFT_eSprite(&tft); // Sprite to hold the altitude indicator
-    TFT_eSprite headingBoxSpr       = TFT_eSprite(&tft); // Sprite to hold heading Box
-    TFT_eSprite speedIndBoxSpr      = TFT_eSprite(&tft); // Sprite to hold speed indicator box
-    TFT_eSprite altIndBoxSpr        = TFT_eSprite(&tft); // Sprite to hold altitude indicator box
-    TFT_eSprite baroBoxSpr          = TFT_eSprite(&tft); // Sprite to holdt the Baro Box
+    TFT_eSPI    *tft;
+    TFT_eSprite *AttitudeIndSpr;     // Sprite to hold attitude Indicator
+    TFT_eSprite *AttitudeIndBackSpr; // Sprite to hold attitude Indicator to fit only 240x320
+    TFT_eSprite *planeSpr;           // Plane Indicator Sprite
+    TFT_eSprite *rollScaleSpr;       // Roll Scale Sprite
+    TFT_eSprite *pitchScaleSpr;      // Pitch Scale Sprite
+    TFT_eSprite *rollIndicatorSpr;   // Roll Indicator Sprite
+    TFT_eSprite *slipIndicatorSpr;   // Slip Indicator Sprite
+    TFT_eSprite *ballSpr;            // Ball Sprite
+    TFT_eSprite *chevronUpSpr;       // Chevron pointing up
+    TFT_eSprite *chevronDownSpr;     // Chevron pointing down
+    TFT_eSprite *SpeedIndicatorSpr;  // Sprite to hold the speed indicator
+    TFT_eSprite *AltitudeIndSpr;     // Sprite to hold the altitude indicator
+    TFT_eSprite *headingBoxSpr;      // Sprite to hold heading Box
+    TFT_eSprite *speedIndBoxSpr;     // Sprite to hold speed indicator box
+    TFT_eSprite *altIndBoxSpr;       // Sprite to hold altitude indicator box
+    TFT_eSprite *baroBoxSpr;         // Sprite to holdt the Baro Box
+    // Pointers to start of Sprites in RAM (these are then "image" pointers)
+    uint16_t *AttitudeIndSprPtr;
+    uint16_t *slipIndicatorSprPtr;
+    //    uint16_t *AttitudeIndBackSprPtr;
+    uint16_t *speedIndicatorSprPtr;
+    uint16_t *rollIndicatorSprPtr;
+    uint16_t *planeSprPtr;
 
     // Function declarations
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
@@ -73,21 +79,22 @@ namespace StandbyAttitudeMonitor
     void  setPowerSave(bool enabled);
 
     // Variables
-    float  pitch                     = 0;
-    float  roll                      = 0;
-    float  newRoll                   = 0;
-    float  pitchPosition             = 0;
-    float  newPitch                  = 0;
-    float  slipAngle                 = 0;    // slip angle value from sim
-    float  airSpeed                  = 0;    // Air speed value from the sim
-    double altitude                  = 0;    // Altitude Value from the simulator
-    float  heading                   = 0;    // heading value from sim
-    float  baro                      = 0;    // baro value from sim
-    float  instrumentBrightnessRatio = 0.75; // baro value from sim
-    float  instrumentBrightness      = 192;
-    bool   powerSaveFlag             = false;
-    int    screenRotation            = 3;
-    int    prevScreenRotation        = 3;
+    float    pitch                     = 0;
+    float    roll                      = 0;
+    float    newRoll                   = 0;
+    float    pitchPosition             = 0;
+    float    newPitch                  = 0;
+    float    slipAngle                 = 0;    // slip angle value from sim
+    float    airSpeed                  = 0;    // Air speed value from the sim
+    double   altitude                  = 0;    // Altitude Value from the simulator
+    float    heading                   = 0;    // heading value from sim
+    float    baro                      = 0;    // baro value from sim
+    float    instrumentBrightnessRatio = 0.75; // baro value from sim
+    float    instrumentBrightness      = 192;
+    bool     powerSaveFlag             = false;
+    int      screenRotation            = 3;
+    int      prevScreenRotation        = 3;
+    uint32_t startLogoMillis           = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -98,98 +105,123 @@ namespace StandbyAttitudeMonitor
     {
         pinMode(TFT_BL, OUTPUT);
 
-        tft.init();
-        tft.setRotation(screenRotation);
-        tft.fillScreen(PANEL_COLOR);
-        tft.setPivot(320, 160);
-        tft.setSwapBytes(true);
-        tft.pushImage(160, 80, 160, 160, logo);
+        tft = _tft;
+        tft->setRotation(screenRotation);
+        tft->fillScreen(PANEL_COLOR);
+        tft->setPivot(320, 160);
+        tft->setSwapBytes(true);
+        tft->pushImage(160, 80, 160, 160, logo);
         delay(3000);
-        tft.fillScreen(PANEL_COLOR);
-        tft.fillCircle(240, 160, 160, TFT_BLACK);
+        tft->fillScreen(PANEL_COLOR);
+        tft->fillCircle(240, 160, 160, TFT_BLACK);
 
-        AttitudeIndSpr.createSprite(400, 400);
-        AttitudeIndSpr.setSwapBytes(false);
-        AttitudeIndSpr.fillSprite(TFT_BLACK);
-        AttitudeIndSpr.setPivot(200, 200);
+        AttitudeIndSpr     = &sprites[0];
+        AttitudeIndBackSpr = &sprites[1];
+        pitchScaleSpr      = &sprites[2];
+        rollScaleSpr       = &sprites[3];
+        rollIndicatorSpr   = &sprites[4];
+        slipIndicatorSpr   = &sprites[5];
+        planeSpr           = &sprites[6];
+        chevronUpSpr       = &sprites[7];
+        chevronDownSpr     = &sprites[8];
+        SpeedIndicatorSpr  = &sprites[9];
+        AltitudeIndSpr     = &sprites[10];
+        altIndBoxSpr       = &sprites[11];
+        speedIndBoxSpr     = &sprites[12];
+        headingBoxSpr      = &sprites[13];
+        baroBoxSpr         = &sprites[14];
+        ballSpr            = &sprites[15];
 
-        pitchScaleSpr.createSprite(123, 148);
-        pitchScaleSpr.setSwapBytes(false);
-        pitchScaleSpr.fillSprite(TFT_BLACK);
+        AttitudeIndSprPtr = (uint16_t *)AttitudeIndSpr->createSprite(400, 400);
+        AttitudeIndSpr->setSwapBytes(false);
+        AttitudeIndSpr->fillSprite(TFT_BLACK);
+        AttitudeIndSpr->setPivot(200, 200);
 
-        rollScaleSpr.createSprite(rollScaleWidth, rollScaleHeight);
-        rollScaleSpr.setSwapBytes(false);
-        rollScaleSpr.fillSprite(TFT_BLACK);
+        pitchScaleSpr->createSprite(123, 148);
+        pitchScaleSpr->setSwapBytes(false);
+        pitchScaleSpr->fillSprite(TFT_BLACK);
 
-        rollIndicatorSpr.createSprite(rollIndicatorWidth, rollIndicatorHeight);
-        rollIndicatorSpr.setSwapBytes(false);
-        rollIndicatorSpr.fillSprite(TFT_BLACK);
+        rollScaleSpr->createSprite(rollScaleWidth, rollScaleHeight);
+        rollScaleSpr->setSwapBytes(false);
+        rollScaleSpr->fillSprite(TFT_BLACK);
+
+        rollIndicatorSprPtr = (uint16_t *)rollIndicatorSpr->createSprite(rollIndicatorWidth, rollIndicatorHeight);
+        rollIndicatorSpr->setSwapBytes(false);
+        rollIndicatorSpr->fillSprite(TFT_BLACK);
 
         // Draw the slip indicator sprite
-        slipIndicatorSpr.createSprite(slipIndicatorWidth, slipIndicatorHeight);
-        slipIndicatorSpr.setSwapBytes(false);
-        slipIndicatorSpr.fillSprite(TFT_BLACK);
+        slipIndicatorSprPtr = (uint16_t *)slipIndicatorSpr->createSprite(slipIndicatorWidth, slipIndicatorHeight);
+        slipIndicatorSpr->setSwapBytes(false);
+        slipIndicatorSpr->fillSprite(TFT_BLACK);
 
-        planeSpr.createSprite(planeIndicatorWidth, planeIndicatorHeight);
-        planeSpr.setSwapBytes(true);
-        planeSpr.fillSprite(TFT_BLACK);
+        planeSprPtr = (uint16_t *)planeSpr->createSprite(planeIndicatorWidth, planeIndicatorHeight);
+        planeSpr->setSwapBytes(true);
+        planeSpr->fillSprite(TFT_BLACK);
 
         // Create the sprites to hold the red chevron that points up
-        chevronUpSpr.createSprite(76, 36);
-        chevronUpSpr.setSwapBytes(false);
-        chevronUpSpr.fillSprite(TFT_BLACK);
-        chevronUpSpr.pushImage(0, 0, 76, 36, chevron_up);
+        chevronUpSpr->createSprite(76, 36);
+        chevronUpSpr->setSwapBytes(false);
+        chevronUpSpr->fillSprite(TFT_BLACK);
+        chevronUpSpr->pushImage(0, 0, 76, 36, chevron_up);
 
         // Create the sprites to hold the red chevron that points down
-        chevronDownSpr.createSprite(76, 36);
-        chevronDownSpr.setSwapBytes(false);
-        chevronDownSpr.fillSprite(TFT_BLACK);
-        chevronDownSpr.pushImage(0, 0, 76, 36, chevron_down);
+        chevronDownSpr->createSprite(76, 36);
+        chevronDownSpr->setSwapBytes(false);
+        chevronDownSpr->fillSprite(TFT_BLACK);
+        chevronDownSpr->pushImage(0, 0, 76, 36, chevron_down);
 
-        SpeedIndicatorSpr.createSprite(120, 320);
-        SpeedIndicatorSpr.setSwapBytes(false);
-        SpeedIndicatorSpr.fillSprite(TFT_BLACK);
+        speedIndicatorSprPtr = (uint16_t *)SpeedIndicatorSpr->createSprite(120, 320);
+        SpeedIndicatorSpr->setSwapBytes(false);
+        SpeedIndicatorSpr->fillSprite(TFT_BLACK);
 
-        AltitudeIndSpr.createSprite(120, 320);
-        AltitudeIndSpr.setSwapBytes(false);
-        AltitudeIndSpr.fillSprite(TFT_BLACK);
+        AltitudeIndSpr->createSprite(120, 320);
+        AltitudeIndSpr->setSwapBytes(false);
+        AltitudeIndSpr->fillSprite(TFT_BLACK);
 
-        altIndBoxSpr.createSprite(altitude_indicator_box_2_width, altitude_indicator_box_2_height);
-        altIndBoxSpr.setSwapBytes(false);
-        altIndBoxSpr.fillScreen(TFT_BLACK); // set blue background and use this for transparency later
+        altIndBoxSpr->createSprite(altitude_indicator_box_2_width, altitude_indicator_box_2_height);
+        altIndBoxSpr->setSwapBytes(false);
+        altIndBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
 
-        speedIndBoxSpr.createSprite(speed_indicator_box_2_width, speed_indicator_box_2_height);
-        speedIndBoxSpr.setSwapBytes(false);
-        speedIndBoxSpr.fillScreen(TFT_BLACK); // set blue background and use this for transparency later
+        speedIndBoxSpr->createSprite(speed_indicator_box_2_width, speed_indicator_box_2_height);
+        speedIndBoxSpr->setSwapBytes(false);
+        speedIndBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
 
-        headingBoxSpr.createSprite(heading_box_width, heading_box_height);
-        headingBoxSpr.setSwapBytes(false);
-        headingBoxSpr.fillScreen(TFT_BLACK); // set blue background and use this for transparency later
+        headingBoxSpr->createSprite(heading_box_width, heading_box_height);
+        headingBoxSpr->setSwapBytes(false);
+        headingBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
 
-        baroBoxSpr.createSprite(baro_box_width, baro_box_height);
-        baroBoxSpr.setSwapBytes(false);
-        baroBoxSpr.fillScreen(TFT_BLACK); // set blue background and use this for transparency later
+        baroBoxSpr->createSprite(baro_box_width, baro_box_height);
+        baroBoxSpr->setSwapBytes(false);
+        baroBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
+
+        ballSpr->createSprite(ballWidth, ballHeight);
+        ballSpr->fillSprite(TFT_BLACK);
+        ballSpr->pushImage(0, 0, ballWidth, ballHeight, ball);
+        ballSpr->setSwapBytes(false);
+
+        drawAttitudeIndicator();
+        drawSpeedIndicator();
+        drawAltitudeIndicator();
     }
 
     void stop()
     {
-        AttitudeIndSpr.deleteSprite();
-        AttitudeIndBackSpr.deleteSprite();
-        AttitudeIndBackSpr2.deleteSprite();
-        planeSpr.deleteSprite();
-        rollScaleSpr.deleteSprite();
-        pitchScaleSpr.deleteSprite();
-        rollIndicatorSpr.deleteSprite();
-        slipIndicatorSpr.deleteSprite();
-        ballSpr.deleteSprite();
-        chevronUpSpr.deleteSprite();
-        chevronDownSpr.deleteSprite();
-        SpeedIndicatorSpr.deleteSprite();
-        AltitudeIndSpr.deleteSprite();
-        headingBoxSpr.deleteSprite();
-        speedIndBoxSpr.deleteSprite();
-        altIndBoxSpr.deleteSprite();
-        baroBoxSpr.deleteSprite();
+        AttitudeIndSpr->deleteSprite();
+        //        AttitudeIndBackSpr->deleteSprite();
+        planeSpr->deleteSprite();
+        rollScaleSpr->deleteSprite();
+        pitchScaleSpr->deleteSprite();
+        rollIndicatorSpr->deleteSprite();
+        slipIndicatorSpr->deleteSprite();
+        ballSpr->deleteSprite();
+        chevronUpSpr->deleteSprite();
+        chevronDownSpr->deleteSprite();
+        SpeedIndicatorSpr->deleteSprite();
+        AltitudeIndSpr->deleteSprite();
+        headingBoxSpr->deleteSprite();
+        speedIndBoxSpr->deleteSprite();
+        altIndBoxSpr->deleteSprite();
+        baroBoxSpr->deleteSprite();
     }
 
     void set(int16_t messageID, char *setPoint)
@@ -287,12 +319,18 @@ namespace StandbyAttitudeMonitor
     {
         instrumentBrightnessRatio = value;
         instrumentBrightness      = (int)scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255);
+        analogWrite(TFT_BL, instrumentBrightness);
     }
 
     void setScreenRotation(int rotation)
     {
         if (rotation == 1 || rotation == 3)
             screenRotation = rotation;
+
+        if (prevScreenRotation != screenRotation) {
+            prevScreenRotation = screenRotation;
+            tft->setRotation(screenRotation);
+        }
     }
 
     void setPowerSave(bool enabled)
@@ -307,25 +345,10 @@ namespace StandbyAttitudeMonitor
     }
     void update()
     {
-        // Do something which is required regulary
-        drawAttitudeIndicator();
-        drawSpeedIndicator();
-        drawAltitudeIndicator();
-        // drawUpdate(1); // Update the sprites
-        analogWrite(TFT_BL, instrumentBrightness);
-
-        // set the screen rotation
-        if (prevScreenRotation != screenRotation) {
-            prevScreenRotation = screenRotation;
-            tft.setRotation(screenRotation);
-        }
+        //        drawAttitudeIndicator();
+        //        drawSpeedIndicator();
+        //        drawAltitudeIndicator();
     }
-
-    // void loop2()
-    // {
-    //   pushUpdate(0); // Transfer top half
-    //   pushUpdate(1); // Transfer bottom half
-    // }
 
     /* **********************************************************************************
         Speed Indicator Section
@@ -335,23 +358,23 @@ namespace StandbyAttitudeMonitor
     {
 
         drawSpeedIndicatorLines();
-        speedIndBoxSpr.pushImage(0, 0, speed_indicator_box_2_width, speed_indicator_box_2_height, speed_indicator_box_2);
-        speedIndBoxSpr.setSwapBytes(true);
+        speedIndBoxSpr->pushImage(0, 0, speed_indicator_box_2_width, speed_indicator_box_2_height, speed_indicator_box_2);
+        speedIndBoxSpr->setSwapBytes(true);
         drawSpeedIndicatorValues();
-        speedIndBoxSpr.pushToSprite(&SpeedIndicatorSpr, 21, 137, TFT_BLACK);
+        speedIndBoxSpr->pushToSprite(SpeedIndicatorSpr, 21, 137, TFT_BLACK);
 
-        headingBoxSpr.pushImage(0, 0, heading_box_width, heading_box_height, heading_box);
-        headingBoxSpr.setSwapBytes(true);
-        headingBoxSpr.setTextColor(TFT_GREEN);
-        headingBoxSpr.setTextDatum(MC_DATUM);
-        // headingBoxSpr.setFreeFont(FSSB12);
-        headingBoxSpr.loadFont(digitsM);
-        headingBoxSpr.drawString(String((int)round(heading)), heading_box_width / 2, heading_box_height / 2 + 4);
-        headingBoxSpr.pushToSprite(&SpeedIndicatorSpr, 12, 267, TFT_BLACK);
-        tft.setViewport(0, 0, 120, 320);
-        SpeedIndicatorSpr.pushSprite(0, 0);
-        headingBoxSpr.fillSprite(TFT_BLACK);
-        SpeedIndicatorSpr.fillSprite(TFT_BLACK);
+        headingBoxSpr->pushImage(0, 0, heading_box_width, heading_box_height, heading_box);
+        headingBoxSpr->setSwapBytes(true);
+        headingBoxSpr->setTextColor(TFT_GREEN);
+        headingBoxSpr->setTextDatum(MC_DATUM);
+        // headingBoxSpr->setFreeFont(FSSB12);
+        headingBoxSpr->loadFont(digitsM);
+        headingBoxSpr->drawString(String((int)round(heading)), heading_box_width / 2, heading_box_height / 2 + 4);
+        headingBoxSpr->pushToSprite(SpeedIndicatorSpr, 12, 267, TFT_BLACK);
+        tft->setViewport(0, 0, 120, 320);
+        SpeedIndicatorSpr->pushSprite(0, 0);
+        headingBoxSpr->fillSprite(TFT_BLACK);
+        SpeedIndicatorSpr->fillSprite(TFT_BLACK);
     }
 
     void drawSpeedIndicatorLines()
@@ -369,10 +392,10 @@ namespace StandbyAttitudeMonitor
         // maxSpeed = round(airSpeed + 40.0);
         maxSpeed = airSpeed + 40.0;
 
-        SpeedIndicatorSpr.loadFont(digitsM);
-        // SpeedIndicatorSpr.setFreeFont(d);
-        SpeedIndicatorSpr.setTextColor(TFT_WHITE);
-        SpeedIndicatorSpr.setTextDatum(ML_DATUM);
+        SpeedIndicatorSpr->loadFont(digitsM);
+        // SpeedIndicatorSpr->setFreeFont(d);
+        SpeedIndicatorSpr->setTextColor(TFT_WHITE);
+        SpeedIndicatorSpr->setTextDatum(ML_DATUM);
 
         // find the first airspeed value that has as "10" to draw long lines
         for (i = round(minSpeed); i <= round(maxSpeed); i++) {
@@ -381,12 +404,12 @@ namespace StandbyAttitudeMonitor
                 // yPosLongLines[0] = round(scaleValue(i, minSpeed, maxSpeed, 320, 0));
                 yPosLongLines[0] = scaleValue(i, minSpeed, maxSpeed, 320, 0);
                 speedValues[0]   = i;
-                SpeedIndicatorSpr.drawWideLine(15, yPosLongLines[0] + 2, 28, yPosLongLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                SpeedIndicatorSpr->drawWideLine(15, yPosLongLines[0] + 2, 28, yPosLongLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
                 if (speedValues[0] > 0)
-                    SpeedIndicatorSpr.drawString(String(speedValues[0]), 30, yPosLongLines[0] + 2);
+                    SpeedIndicatorSpr->drawString(String(speedValues[0]), 30, yPosLongLines[0] + 2);
                 break;
-                // tft.setTextColor(TFT_GREEN);
-                // tft.drawString(String(i), 50, 20, 4);
+                // tft->setTextColor(TFT_GREEN);
+                // tft->drawString(String(i), 50, 20, 4);
             }
         }
 
@@ -394,10 +417,10 @@ namespace StandbyAttitudeMonitor
         for (i = 1; i < 8; i++) {
             // yPosLongLines[i] = round(scaleValue(speedValues[0] + (i * 10), minSpeed, maxSpeed, 320, 0));
             yPosLongLines[i] = scaleValue(speedValues[0] + (i * 10), minSpeed, maxSpeed, 320, 0);
-            SpeedIndicatorSpr.drawWideLine(15, yPosLongLines[i] + 2, 28, yPosLongLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            SpeedIndicatorSpr->drawWideLine(15, yPosLongLines[i] + 2, 28, yPosLongLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
             speedValues[i] = speedValues[0] + (i * 10);
             if (speedValues[i] > 0)
-                SpeedIndicatorSpr.drawString(String(speedValues[i]), 30, yPosLongLines[i] + 2);
+                SpeedIndicatorSpr->drawString(String(speedValues[i]), 30, yPosLongLines[i] + 2);
         }
 
         // find the first airspeed value that has as "5" to draw short lines
@@ -407,9 +430,9 @@ namespace StandbyAttitudeMonitor
                 // yPosShortLines[0] = round(scaleValue(i, minSpeed, maxSpeed, 320, 0));
                 yPosShortLines[0] = scaleValue(i, minSpeed, maxSpeed, 320, 0);
                 speedValues[0]    = i;
-                SpeedIndicatorSpr.drawWideLine(15, yPosShortLines[0] + 2, 23, yPosShortLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
-                // tft.setTextColor(TFT_GREEN);
-                // tft.drawString(String(i), 0, 20, 4);
+                SpeedIndicatorSpr->drawWideLine(15, yPosShortLines[0] + 2, 23, yPosShortLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                // tft->setTextColor(TFT_GREEN);
+                // tft->drawString(String(i), 0, 20, 4);
                 break;
             }
         }
@@ -419,17 +442,17 @@ namespace StandbyAttitudeMonitor
             // yPosShortLines[i] = round(scaleValue(speedValues[0] + (i * 10), minSpeed, maxSpeed, 320, 0));
             yPosShortLines[i] = scaleValue(speedValues[0] + (i * 10), minSpeed, maxSpeed, 320, 0);
             speedValues[i]    = speedValues[0] + (i * 10);
-            SpeedIndicatorSpr.drawWideLine(15, yPosShortLines[i] + 2, 23, yPosShortLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            SpeedIndicatorSpr->drawWideLine(15, yPosShortLines[i] + 2, 23, yPosShortLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
         }
     }
 
     void drawSpeedIndicatorValues()
     {
-        speedIndBoxSpr.setTextColor(TFT_WHITE);
-        speedIndBoxSpr.setTextDatum(ML_DATUM);
-        // speedIndBoxSpr.setFreeFont(FSSB12);
-        speedIndBoxSpr.loadFont(digitsL);
-        speedIndBoxSpr.drawString(String((int)round(airSpeed)), 13, speed_indicator_box_2_height / 2 - 6);
+        speedIndBoxSpr->setTextColor(TFT_WHITE);
+        speedIndBoxSpr->setTextDatum(ML_DATUM);
+        // speedIndBoxSpr->setFreeFont(FSSB12);
+        speedIndBoxSpr->loadFont(digitsL);
+        speedIndBoxSpr->drawString(String((int)round(airSpeed)), 13, speed_indicator_box_2_height / 2 - 6);
     }
 
     /* **********************************************************************************
@@ -439,26 +462,26 @@ namespace StandbyAttitudeMonitor
     void drawAltitudeIndicator()
     {
         drawAltitudeIndicatorLines();
-        // altIndBoxSpr.setSwapBytes(true);
-        altIndBoxSpr.pushImage(0, 0, altitude_indicator_box_2_width, altitude_indicator_box_2_height, altitude_indicator_box_2);
-        altIndBoxSpr.setSwapBytes(true);
+        // altIndBoxSpr->setSwapBytes(true);
+        altIndBoxSpr->pushImage(0, 0, altitude_indicator_box_2_width, altitude_indicator_box_2_height, altitude_indicator_box_2);
+        altIndBoxSpr->setSwapBytes(true);
         drawAltitudeIndicatorValues();
-        altIndBoxSpr.pushToSprite(&AltitudeIndSpr, 2, 140, TFT_BLACK);
+        altIndBoxSpr->pushToSprite(AltitudeIndSpr, 2, 140, TFT_BLACK);
 
-        baroBoxSpr.setSwapBytes(true);
-        baroBoxSpr.pushImage(0, 0, baro_box_width, baro_box_height, baro_box);
+        baroBoxSpr->setSwapBytes(true);
+        baroBoxSpr->pushImage(0, 0, baro_box_width, baro_box_height, baro_box);
 
-        baroBoxSpr.setTextColor(TFT_GREEN);
-        baroBoxSpr.setTextDatum(MC_DATUM);
-        // baroBoxSpr.setFreeFont(FSSB12);
-        baroBoxSpr.loadFont(digitsS);
-        baroBoxSpr.drawString(String(baro), baro_box_width / 2, baro_box_height / 2 + 10);
-        baroBoxSpr.pushToSprite(&AltitudeIndSpr, 34, 268, TFT_BLACK);
+        baroBoxSpr->setTextColor(TFT_GREEN);
+        baroBoxSpr->setTextDatum(MC_DATUM);
+        // baroBoxSpr->setFreeFont(FSSB12);
+        baroBoxSpr->loadFont(digitsS);
+        baroBoxSpr->drawString(String(baro), baro_box_width / 2, baro_box_height / 2 + 10);
+        baroBoxSpr->pushToSprite(AltitudeIndSpr, 34, 268, TFT_BLACK);
 
-        tft.setViewport(360, 0, 480, 320);
-        AltitudeIndSpr.pushSprite(0, 0);
-        AltitudeIndSpr.fillSprite(TFT_BLACK);
-        baroBoxSpr.fillSprite(TFT_BLACK);
+        tft->setViewport(360, 0, 480, 320);
+        AltitudeIndSpr->pushSprite(0, 0);
+        AltitudeIndSpr->fillSprite(TFT_BLACK);
+        baroBoxSpr->fillSprite(TFT_BLACK);
     }
 
     void drawAltitudeIndicatorLines()
@@ -480,10 +503,10 @@ namespace StandbyAttitudeMonitor
         // maxAltitude = round(altitude + 250.0);
         maxAltitude = altitude + 250.0;
 
-        AltitudeIndSpr.loadFont(digitsS);
-        // AltitudeIndSpr.setFreeFont(digitsM);
-        AltitudeIndSpr.setTextColor(TFT_WHITE);
-        AltitudeIndSpr.setTextDatum(MR_DATUM);
+        AltitudeIndSpr->loadFont(digitsS);
+        // AltitudeIndSpr->setFreeFont(digitsM);
+        AltitudeIndSpr->setTextColor(TFT_WHITE);
+        AltitudeIndSpr->setTextDatum(MR_DATUM);
 
         // find the first altitude value that has a "100" to draw long lines
         for (i = round(minAltitude); i <= round(maxAltitude); i++) {
@@ -492,11 +515,11 @@ namespace StandbyAttitudeMonitor
                 // yPosLongLines[0] = round(scaleValue(i, minAltitude, maxAltitude, 320, 0));
                 yPosLongLines[0]  = scaleValue(i, minAltitude, maxAltitude, 320, 0);
                 altitudeValues[0] = i;
-                AltitudeIndSpr.drawWideLine(91, yPosLongLines[0] + 2, 109, yPosLongLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
-                AltitudeIndSpr.drawString(String(altitudeValues[0]), 89, yPosLongLines[0] + 2);
+                AltitudeIndSpr->drawWideLine(91, yPosLongLines[0] + 2, 109, yPosLongLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                AltitudeIndSpr->drawString(String(altitudeValues[0]), 89, yPosLongLines[0] + 2);
                 break;
-                // tft.setTextColor(TFT_GREEN);
-                // tft.drawString(String(i), 0, 210, 4);
+                // tft->setTextColor(TFT_GREEN);
+                // tft->drawString(String(i), 0, 210, 4);
             }
         }
 
@@ -504,9 +527,9 @@ namespace StandbyAttitudeMonitor
         for (i = 1; i < 5; i++) {
             // yPosLongLines[i] = round(scaleValue(altitudeValues[0] + (i * 100), minAltitude, maxAltitude, 320, 0));
             yPosLongLines[i] = scaleValue(altitudeValues[0] + (i * 100), minAltitude, maxAltitude, 320, 0);
-            AltitudeIndSpr.drawWideLine(91, yPosLongLines[i] + 2, 109, yPosLongLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            AltitudeIndSpr->drawWideLine(91, yPosLongLines[i] + 2, 109, yPosLongLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
             altitudeValues[i] = altitudeValues[0] + (i * 100);
-            AltitudeIndSpr.drawString(String(altitudeValues[i]), 89, yPosLongLines[i] + 2);
+            AltitudeIndSpr->drawString(String(altitudeValues[i]), 89, yPosLongLines[i] + 2);
         }
 
         // find the first altitude value that has a "50" to draw medium lines
@@ -516,8 +539,8 @@ namespace StandbyAttitudeMonitor
                 // yPosMediumLines[0] = round(scaleValue(i, minAltitude, maxAltitude, 320, 0));
                 yPosMediumLines[0] = scaleValue(i, minAltitude, maxAltitude, 320, 0);
                 altitudeValues[0]  = i;
-                AltitudeIndSpr.drawWideLine(97, yPosMediumLines[0] + 2, 109, yPosMediumLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
-                // AltitudeIndSpr.drawString(String(altitudeValues[0]), 50, yPosMediumLines[0] + 2);
+                AltitudeIndSpr->drawWideLine(97, yPosMediumLines[0] + 2, 109, yPosMediumLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                // AltitudeIndSpr->drawString(String(altitudeValues[0]), 50, yPosMediumLines[0] + 2);
                 break;
             }
         }
@@ -528,7 +551,7 @@ namespace StandbyAttitudeMonitor
             // yPosMediumLines[i] = round(scaleValue(altitudeValues[0] + (i * 100), minAltitude, maxAltitude, 320, 0));
             yPosMediumLines[i] = scaleValue(altitudeValues[0] + (i * 100), minAltitude, maxAltitude, 320, 0);
             altitudeValues[i]  = altitudeValues[0] + (i * 100);
-            AltitudeIndSpr.drawWideLine(97, yPosMediumLines[i] + 2, 109, yPosMediumLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            AltitudeIndSpr->drawWideLine(97, yPosMediumLines[i] + 2, 109, yPosMediumLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
         }
 
         // find the first altitude value that has a "25" to draw short lines
@@ -538,7 +561,7 @@ namespace StandbyAttitudeMonitor
                 // yPosShortLines[0] = round(scaleValue(i, minAltitude, maxAltitude, 320, 0));
                 yPosShortLines[0] = scaleValue(i, minAltitude, maxAltitude, 320, 0);
                 altitudeValues[0] = i;
-                AltitudeIndSpr.drawWideLine(102, yPosShortLines[0] + 2, 109, yPosShortLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                AltitudeIndSpr->drawWideLine(102, yPosShortLines[0] + 2, 109, yPosShortLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
                 break;
             }
         }
@@ -549,18 +572,18 @@ namespace StandbyAttitudeMonitor
             // yPosShortLines[i] = round(scaleValue(altitudeValues[0] + (i * 50), minAltitude, maxAltitude, 320, 0));
             yPosShortLines[i] = scaleValue(altitudeValues[0] + (i * 50), minAltitude, maxAltitude, 320, 0);
             altitudeValues[i] = altitudeValues[0] + (i * 50);
-            AltitudeIndSpr.drawWideLine(102, yPosShortLines[i] + 2, 109, yPosShortLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            AltitudeIndSpr->drawWideLine(102, yPosShortLines[i] + 2, 109, yPosShortLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
         }
     }
 
     void drawAltitudeIndicatorValues()
     {
-        altIndBoxSpr.setTextColor(TFT_WHITE);
-        altIndBoxSpr.setTextColor(TFT_WHITE);
-        altIndBoxSpr.setTextDatum(MR_DATUM);
-        // altIndBoxSpr.setFreeFont(FSSB12);
-        altIndBoxSpr.loadFont(digitsL);
-        altIndBoxSpr.drawString(String((int)round(altitude)), 88, altitude_indicator_box_2_height / 2 - 9);
+        altIndBoxSpr->setTextColor(TFT_WHITE);
+        altIndBoxSpr->setTextColor(TFT_WHITE);
+        altIndBoxSpr->setTextDatum(MR_DATUM);
+        // altIndBoxSpr->setFreeFont(FSSB12);
+        altIndBoxSpr->loadFont(digitsL);
+        altIndBoxSpr->drawString(String((int)round(altitude)), 88, altitude_indicator_box_2_height / 2 - 9);
     }
 
     /* **********************************************************************************
@@ -631,56 +654,56 @@ namespace StandbyAttitudeMonitor
     {
 
         // Draw main sprite that holds the sky and ground
-        AttitudeIndSpr.fillRect(0, 0, 400, pitchPosition + 40, SKY_BLUE);
-        AttitudeIndSpr.fillRect(0, pitchPosition + 40, 400, 400, BROWN);
-        AttitudeIndSpr.fillRect(0, pitchPosition + 40 - 2, 400, 4, TFT_WHITE);
-        AttitudeIndSpr.setPivot(200, 200);
+        AttitudeIndSpr->fillRect(0, 0, 400, pitchPosition + 40, SKY_BLUE);
+        AttitudeIndSpr->fillRect(0, pitchPosition + 40, 400, 400, BROWN);
+        AttitudeIndSpr->fillRect(0, pitchPosition + 40 - 2, 400, 4, TFT_WHITE);
+        AttitudeIndSpr->setPivot(200, 200);
 
         // Draw the pitch scale sprite
 
         drawPitchScale(pitch);
-        pitchScaleSpr.pushToSprite(&AttitudeIndSpr, 59 + 80, 88 + 40, TFT_BLACK);
+        pitchScaleSpr->pushToSprite(AttitudeIndSpr, 59 + 80, 88 + 40, TFT_BLACK);
 
         // Draw the roll scale sprite
-        rollScaleSpr.pushImage(0, 0, rollScaleWidth, rollScaleHeight, roll_scale);
-        rollScaleSpr.setSwapBytes(true);
-        rollScaleSpr.pushToSprite(&AttitudeIndSpr, 17 + 80, 42 + 40, TFT_BLACK);
-        rollScaleSpr.fillSprite(TFT_BLACK);
+        rollScaleSpr->pushImage(0, 0, rollScaleWidth, rollScaleHeight, roll_scale);
+        rollScaleSpr->setSwapBytes(true);
+        rollScaleSpr->pushToSprite(AttitudeIndSpr, 17 + 80, 42 + 40, TFT_BLACK);
+        rollScaleSpr->fillSprite(TFT_BLACK);
 
         // Finally, rotate the Attitude indicator sprite and copy to AttitudeIndBackSpr
-        // AttitudeIndSpr.pushRotated(&AttitudeIndBackSpr, newRoll, TFT_BLACK);
+        // AttitudeIndSpr->pushRotated(&AttitudeIndBackSpr, newRoll, TFT_BLACK);
 
-        slipIndicatorSpr.pushImage(0, 0, slipIndicatorWidth, slipIndicatorHeight, slip_indicator);
+        slipIndicatorSpr->pushImage(0, 0, slipIndicatorWidth, slipIndicatorHeight, slip_indicator);
 
         // Draw the the ball. The degree of is -8 to 8 degrees according to the sim values by trial and error
 
         drawBall();
-        slipIndicatorSpr.setSwapBytes(true);
-        // slipIndicatorSpr.pushToSprite(&AttitudeIndBackSpr, 73, 264, TFT_BLACK);
-        slipIndicatorSpr.setPivot(slipIndicatorWidth / 2, -135);
-        slipIndicatorSpr.pushRotated(&AttitudeIndSpr, newRoll * -1.0, TFT_BLACK);
+        slipIndicatorSpr->setSwapBytes(true);
+        // slipIndicatorSpr->pushToSprite(&AttitudeIndBackSpr, 73, 264, TFT_BLACK);
+        slipIndicatorSpr->setPivot(slipIndicatorWidth / 2, -135);
+        slipIndicatorSpr->pushRotated(AttitudeIndSpr, newRoll * -1.0, TFT_BLACK);
 
         // Draw the roll indicator sprite
 
-        rollIndicatorSpr.setSwapBytes(true);
-        rollIndicatorSpr.pushImage(0, 0, rollIndicatorWidth, rollIndicatorHeight, roll_indicator);
-        rollIndicatorSpr.setPivot(rollIndicatorWidth / 2, 90);
-        rollIndicatorSpr.pushRotated(&AttitudeIndSpr, newRoll * -1.0, TFT_RED);
-        // rollIndicatorSpr.pushToSprite(&AttitudeIndBackSpr, 114, 66, TFT_RED);
+        rollIndicatorSpr->setSwapBytes(true);
+        rollIndicatorSpr->pushImage(0, 0, rollIndicatorWidth, rollIndicatorHeight, roll_indicator);
+        rollIndicatorSpr->setPivot(rollIndicatorWidth / 2, 90);
+        rollIndicatorSpr->pushRotated(AttitudeIndSpr, newRoll * -1.0, TFT_RED);
+        // rollIndicatorSpr->pushToSprite(AttitudeIndBackSpr, 114, 66, TFT_RED);
 
         // Draw the plane indicator
-        planeSpr.pushImage(0, 0, planeIndicatorWidth, planeIndicatorHeight, plane_indicator);
-        // planeSpr.pushToSprite(&AttitudeIndBackSpr, 13, 154, TFT_BLACK);
-        planeSpr.setPivot(planeIndicatorWidth / 2, 5);
-        planeSpr.pushRotated(&AttitudeIndSpr, newRoll * -1.0, TFT_BLACK);
+        planeSpr->pushImage(0, 0, planeIndicatorWidth, planeIndicatorHeight, plane_indicator);
+        // planeSpr->pushToSprite(AttitudeIndBackSpr, 13, 154, TFT_BLACK);
+        planeSpr->setPivot(planeIndicatorWidth / 2, 5);
+        planeSpr->pushRotated(AttitudeIndSpr, newRoll * -1.0, TFT_BLACK);
 
-        tft.setViewport(120, 0, 240, 320);
-        tft.setSwapBytes(false);
-        tft.setPivot(240, 160);
-        AttitudeIndSpr.pushRotated(newRoll, TFT_BLACK);
+        tft->setViewport(120, 0, 240, 320);
+        tft->setSwapBytes(false);
+        tft->setPivot(240, 160);
+        AttitudeIndSpr->pushRotated(newRoll, TFT_BLACK);
         // AttitudeIndBackSpr.pushSprite(120, 0, TFT_BLACK);
-        pitchScaleSpr.fillSprite(TFT_BLACK);
-        AttitudeIndSpr.fillScreen(TFT_BLACK);
+        pitchScaleSpr->fillSprite(TFT_BLACK);
+        AttitudeIndSpr->fillScreen(TFT_BLACK);
     }
 
     void drawPitchScale(float pitch)
@@ -698,38 +721,38 @@ namespace StandbyAttitudeMonitor
             pitchAngle   = round(angleIncrement);
 
             if ((pitchAngle % 5 == 0) && pitchAngle >= -40 && pitchAngle <= 40 && (pitchAngle % 10) != 0) {
-                pitchScaleSpr.setSwapBytes(true);
-                // pitchScaleSpr.drawWideLine(45, pitchLinePos, 45 + pitchLineShortWidth, pitchLinePos, 4, TFT_WHITE, TFT_WHITE);
-                pitchScaleSpr.fillRect(45, pitchLinePos, pitchLineShortWidth, 4, TFT_WHITE);
+                pitchScaleSpr->setSwapBytes(true);
+                // pitchScaleSpr->drawWideLine(45, pitchLinePos, 45 + pitchLineShortWidth, pitchLinePos, 4, TFT_WHITE, TFT_WHITE);
+                pitchScaleSpr->fillRect(45, pitchLinePos, pitchLineShortWidth, 4, TFT_WHITE);
             }
 
             if ((pitchAngle % 10) == 0) // draw long pitch line and numbers
             {
-                pitchScaleSpr.setSwapBytes(true);
-                // pitchScaleSpr.drawWideLine(23, pitchLinePos, pitchLineLongWidth + 20, pitchLinePos, 4, TFT_WHITE, TFT_WHITE);
-                pitchScaleSpr.fillRect(23, pitchLinePos, pitchLineLongWidth, 4, TFT_WHITE);
-                pitchScaleSpr.loadFont(digitsS);
-                // pitchScaleSpr.setFreeFont(digits);
+                pitchScaleSpr->setSwapBytes(true);
+                // pitchScaleSpr->drawWideLine(23, pitchLinePos, pitchLineLongWidth + 20, pitchLinePos, 4, TFT_WHITE, TFT_WHITE);
+                pitchScaleSpr->fillRect(23, pitchLinePos, pitchLineLongWidth, 4, TFT_WHITE);
+                pitchScaleSpr->loadFont(digitsS);
+                // pitchScaleSpr->setFreeFont(digits);
 
-                pitchScaleSpr.setTextColor(TFT_WHITE, TFT_WHITE);
+                pitchScaleSpr->setTextColor(TFT_WHITE, TFT_WHITE);
                 if (pitchAngle != 0) {
                     if (abs(pitchAngle) > 90)
                         pitchAngle = 90 - (abs(pitchAngle) - 90);
-                    pitchScaleSpr.setSwapBytes(false);
-                    pitchScaleSpr.drawString(String(abs(pitchAngle)), 1, pitchLinePos - 5);
-                    pitchScaleSpr.drawString(String(abs(pitchAngle)), 101, pitchLinePos - 5);
+                    pitchScaleSpr->setSwapBytes(false);
+                    pitchScaleSpr->drawString(String(abs(pitchAngle)), 1, pitchLinePos - 5);
+                    pitchScaleSpr->drawString(String(abs(pitchAngle)), 101, pitchLinePos - 5);
                 }
                 // Draw chevron pointing down to horizon if the angle is 50 or 70 or 90
                 if (pitchAngle == 50 || pitchAngle == 70 || pitchAngle == 90) {
-                    pitchScaleSpr.setSwapBytes(true);
-                    // pitchScaleSpr.pushImage(23, pitchLinePos - 20, 76, 36, chevron_down);
-                    chevronDownSpr.pushToSprite(&pitchScaleSpr, 23, pitchLinePos - 20, TFT_BLACK);
+                    pitchScaleSpr->setSwapBytes(true);
+                    // pitchScaleSpr->pushImage(23, pitchLinePos - 20, 76, 36, chevron_down);
+                    chevronDownSpr->pushToSprite(pitchScaleSpr, 23, pitchLinePos - 20, TFT_BLACK);
                 }
                 // Draw chevron pointing up to horizon if the angle is -50 or -70 or -90
                 else if (pitchAngle == -50 || pitchAngle == -70 || pitchAngle == -90) {
-                    pitchScaleSpr.setSwapBytes(true);
-                    chevronUpSpr.pushToSprite(&pitchScaleSpr, 23, pitchLinePos - 20, TFT_BLACK);
-                    // pitchScaleSpr.pushImage(23, pitchLinePos - 20, 76, 36, chevron_up);
+                    pitchScaleSpr->setSwapBytes(true);
+                    chevronUpSpr->pushToSprite(pitchScaleSpr, 23, pitchLinePos - 20, TFT_BLACK);
+                    // pitchScaleSpr->pushImage(23, pitchLinePos - 20, 76, 36, chevron_up);
                 }
             }
         }
@@ -739,12 +762,8 @@ namespace StandbyAttitudeMonitor
     {
         float ballPos = 0;
 
-        ballSpr.createSprite(ballWidth, ballHeight);
-        ballSpr.fillSprite(TFT_BLACK);
         ballPos = scaleValue(slipAngle, -8, 8, 0, 79); // scale the angles to the number of pixels
-        ballSpr.pushImage(0, 0, ballWidth, ballHeight, ball);
-        ballSpr.setSwapBytes(false);
-        ballSpr.pushToSprite(&slipIndicatorSpr, ballPos, 0, TFT_BLACK);
+        ballSpr->pushToSprite(slipIndicatorSpr, ballPos, 0, TFT_BLACK);
     }
 
     // Scale function
@@ -752,57 +771,5 @@ namespace StandbyAttitudeMonitor
     {
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
-
-    // void pushUpdate(bool sel)
-    // {
-    //   LOCK_SPRITE(sel);
-    //   pushToTFT(sel);
-    //   UNLOCK_SPRITE(sel);
-    // }
-
-    // void drawUpdate(bool sel)
-    // {
-    //   LOCK_SPRITE(sel);
-    //   drawSprites(sel);
-    //   UNLOCK_SPRITE(sel);
-    // }
-
-    // void drawSprites(uint_fast8_t sel)
-    // {
-    //   if (sel == 0)
-    //   {
-    //     drawAll();
-    //   }
-    //   else
-    //   {
-    //     drawSpeedIndicator();
-    //     drawAltitudeIndicator();
-    //   }
-    // }
-
-    // void pushToTFT(uint_fast8_t sel)
-    // {
-    //   if (sel == 0)
-    //   {
-    //     // AttitudeIndBackSpr.pushSprite(120, 0, TFT_BLACK);
-    //     tft.setViewport(120, 0, 240, 320);
-    //     AttitudeIndSpr.pushRotated(newRoll, TFT_BLACK);
-    //     // AttitudeIndBackSpr.pushSprite(120, 0, TFT_BLACK);
-    //     pitchScaleSpr.fillSprite(TFT_BLACK);
-    //     AttitudeIndSpr.fillScreen(TFT_BLACK);
-    //     // AttitudeIndBackSpr.fillSprite(TFT_BLACK);
-    //   }
-    //   else
-    //   {
-    //     // AttitudeIndBackSpr.pushSprite(120, 0, TFT_BLACK);
-    //     tft.setViewport(0, 0, 480, 320);
-    //     SpeedIndicatorSpr.pushSprite(0, 0);
-    //     headingBoxSpr.fillSprite(TFT_BLACK);
-    //     SpeedIndicatorSpr.fillSprite(TFT_BLACK);
-    //     AltitudeIndSpr.pushSprite(360, 0);
-    //     AltitudeIndSpr.fillSprite(TFT_BLACK);
-    //     baroBoxSpr.fillSprite(TFT_BLACK);
-    //   }
-    // }
 
 }
