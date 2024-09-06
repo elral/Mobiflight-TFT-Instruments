@@ -13,13 +13,15 @@ namespace Altimeter
 
 #define PANEL_COLOR 0x7BEE
 
-    TFT_eSPI tft = TFT_eSPI();
-    TFT_eSprite mainSpr        = TFT_eSprite(&tft); // main sprite
-    TFT_eSprite altimeterSpr   = TFT_eSprite(&tft); // main sprite
-    TFT_eSprite baroSpr        = TFT_eSprite(&tft); // barometer sprite in Hpa
-    TFT_eSprite needle10000Spr = TFT_eSprite(&tft); // 10000 needle
-    TFT_eSprite needle1000Spr  = TFT_eSprite(&tft); // 1000 needle
-    TFT_eSprite needle100Spr   = TFT_eSprite(&tft); // 100 needle
+    TFT_eSPI    *tft;
+    TFT_eSprite *mainSpr;
+    TFT_eSprite *altimeterSpr;
+    TFT_eSprite *baroSpr;
+    TFT_eSprite *needle10000Spr;
+    TFT_eSprite *needle1000Spr;
+    TFT_eSprite *needle100Spr;
+    // Pointers to start of Sprites in RAM (these are then "image" pointers)
+    uint16_t *mainSprPtr;
 
     // Function declarations
     void  drawAll();
@@ -31,24 +33,25 @@ namespace Altimeter
     void  setPowerSaveMode(bool enabled);
     void  setScreenRotation(int rotation);
 
-    bool    _initialised;
-    uint8_t _pin1, _pin2, _pin3;
-    float   altitude                  = 0;     // altitude value from the simulator
-    float   baro                      = 29.92; // barometric pressure value from the simulator
-    int     tenThousand               = 0;     // ten thousands value
-    int     thousand                  = 0;     // thousands value
-    int     hundred                   = 0;     // hundreds value
-    float   angleTenThousand          = 0;     // angle for the 10,000 pointer
-    float   angleThousand             = 0;     // angle for the 1,000 needle
-    float   angleHundred              = 0;     // angle for the 100 needle
-    float   angleBaro                 = 0;     // angle of the of the baro indicator base on the baro value
-    int     baroMode                  = 0;     // baro mode, 0 = inHG, 1 = hpa, others default to inHG
-    int     prevBaroMode              = 0;
-    int     instrumentBrightness      = 255; // instrument brightness based on ratio. Value between 0 - 255
-    float   instrumentBrightnessRatio = 0;   // previous value of instrument brightness. If no change do not set instrument brightness to avoid flickers
-    bool    powerSaveFlag             = false;
-    int     screenRotation            = 3;
-    int     prevScreenRotation        = 3;
+    bool     _initialised;
+    uint8_t  _pin1, _pin2, _pin3;
+    float    altitude                  = 0;     // altitude value from the simulator
+    float    baro                      = 29.92; // barometric pressure value from the simulator
+    int      tenThousand               = 0;     // ten thousands value
+    int      thousand                  = 0;     // thousands value
+    int      hundred                   = 0;     // hundreds value
+    float    angleTenThousand          = 0;     // angle for the 10,000 pointer
+    float    angleThousand             = 0;     // angle for the 1,000 needle
+    float    angleHundred              = 0;     // angle for the 100 needle
+    float    angleBaro                 = 0;     // angle of the of the baro indicator base on the baro value
+    int      baroMode                  = 0;     // baro mode, 0 = inHG, 1 = hpa, others default to inHG
+    int      prevBaroMode              = 0;
+    int      instrumentBrightness      = 255; // instrument brightness based on ratio. Value between 0 - 255
+    float    instrumentBrightnessRatio = 0;   // previous value of instrument brightness. If no change do not set instrument brightness to avoid flickers
+    bool     powerSaveFlag             = false;
+    int      screenRotation            = 3;
+    int      prevScreenRotation        = 3;
+    uint32_t startLogoMillis           = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -56,59 +59,69 @@ namespace Altimeter
     ********************************************************************************** */
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
-        tft.init();
-        tft.setRotation(3);
-        tft.fillScreen(PANEL_COLOR);
-        tft.setPivot(320, 160);
-        tft.setSwapBytes(true);
-        tft.pushImage(160, 80, 160, 160, logo);
-        delay(3000);
-        tft.fillScreen(TFT_BLACK);
+        tft = _tft;
+        tft->setRotation(3);
+        tft->setPivot(320, 160);
+        tft->setSwapBytes(true);
+        tft->fillScreen(TFT_BLACK);
+        tft->startWrite(); // TFT chip select held low permanently
 
-        mainSpr.createSprite(320, 320);
-        mainSpr.setSwapBytes(false);
-        mainSpr.fillSprite(TFT_BLACK);
-        mainSpr.setPivot(160, 160);
+        mainSpr        = &sprites[0];
+        altimeterSpr   = &sprites[1];
+        baroSpr        = &sprites[2];
+        needle10000Spr = &sprites[3];
+        needle1000Spr  = &sprites[4];
+        needle100Spr   = &sprites[5];
 
-        altimeterSpr.createSprite(320, 320);
-        altimeterSpr.setSwapBytes(false);
-        altimeterSpr.fillSprite(TFT_BLACK);
-        altimeterSpr.pushImage(0, 0, 320, 320, altimeter_main);
-        altimeterSpr.setPivot(160, 160);
+        mainSprPtr = (uint16_t *)mainSpr->createSprite(320, 320);
+        mainSpr->setSwapBytes(false);
+        mainSpr->fillSprite(TFT_BLACK);
+        mainSpr->setPivot(160, 160);
 
-        baroSpr.createSprite(320, 320);
-        baroSpr.setSwapBytes(true);
-        baroSpr.fillSprite(TFT_BLACK);
-        baroSpr.setPivot(160, 160);
-        baroSpr.pushImage(0, 0, 320, 320, baro_inhg);
+        altimeterSpr->createSprite(320, 320);
+        altimeterSpr->setSwapBytes(false);
+        altimeterSpr->fillSprite(TFT_BLACK);
+        altimeterSpr->pushImage(0, 0, 320, 320, altimeter_main);
+        altimeterSpr->setPivot(160, 160);
 
-        needle10000Spr.createSprite(needle_10000_width, needle_10000_height);
-        needle10000Spr.setSwapBytes(true);
-        needle10000Spr.fillSprite(TFT_BLACK);
-        needle10000Spr.pushImage(0, 0, needle_10000_width, needle_10000_height, needle_10000);
-        needle10000Spr.setPivot(needle_10000_width / 2, 141);
+        baroSpr->createSprite(320, 320);
+        baroSpr->setSwapBytes(true);
+        baroSpr->fillSprite(TFT_BLACK);
+        baroSpr->setPivot(160, 160);
+        baroSpr->pushImage(0, 0, 320, 320, baro_inhg);
 
-        needle1000Spr.createSprite(needle_1000_width, needle_1000_height);
-        needle1000Spr.setSwapBytes(true);
-        needle1000Spr.fillSprite(TFT_BLACK);
-        needle1000Spr.pushImage(0, 0, needle_1000_width, needle_1000_height, needle_1000);
-        needle1000Spr.setPivot(needle_1000_width / 2, 90);
+        needle10000Spr->createSprite(needle_10000_width, needle_10000_height);
+        needle10000Spr->setSwapBytes(true);
+        needle10000Spr->fillSprite(TFT_BLACK);
+        needle10000Spr->pushImage(0, 0, needle_10000_width, needle_10000_height, needle_10000);
+        needle10000Spr->setPivot(needle_10000_width / 2, 141);
 
-        needle100Spr.createSprite(needle_100_width, needle_100_height);
-        needle100Spr.setSwapBytes(true);
-        needle100Spr.fillSprite(TFT_BLACK);
-        needle100Spr.pushImage(0, 0, needle_100_width, needle_100_height, needle_100);
-        needle100Spr.setPivot(needle_100_width / 2 - 1, 132);
+        needle1000Spr->createSprite(needle_1000_width, needle_1000_height);
+        needle1000Spr->setSwapBytes(true);
+        needle1000Spr->fillSprite(TFT_BLACK);
+        needle1000Spr->pushImage(0, 0, needle_1000_width, needle_1000_height, needle_1000);
+        needle1000Spr->setPivot(needle_1000_width / 2, 90);
+
+        needle100Spr->createSprite(needle_100_width, needle_100_height);
+        needle100Spr->setSwapBytes(true);
+        needle100Spr->fillSprite(TFT_BLACK);
+        needle100Spr->pushImage(0, 0, needle_100_width, needle_100_height, needle_100);
+        needle100Spr->setPivot(needle_100_width / 2 - 1, 132);
+
+        tft->pushImage(160, 80, 160, 160, logo);
+        startLogoMillis = millis();
+        tft->setSwapBytes(false);
     }
 
     void stop()
     {
-        mainSpr.deleteSprite();
-        altimeterSpr.deleteSprite();
-        baroSpr.deleteSprite();
-        needle10000Spr.deleteSprite();
-        needle1000Spr.deleteSprite();
-        needle100Spr.deleteSprite();
+        tft->endWrite();
+        mainSpr->deleteSprite();
+        altimeterSpr->deleteSprite();
+        baroSpr->deleteSprite();
+        needle10000Spr->deleteSprite();
+        needle1000Spr->deleteSprite();
+        needle100Spr->deleteSprite();
     }
 
     void set(int16_t messageID, char *setPoint)
@@ -124,29 +137,27 @@ namespace Altimeter
 
         ********************************************************************************** */
         int32_t data = atoi(setPoint);
-        // uint16_t output;
 
-        // do something according your messageID
         switch (messageID) {
         case -1:
-            // tbd., get's called when Mobiflight shuts down
+            setPowerSaveMode(true);
+            break;
         case -2:
-            // tbd., get's called when PowerSavingMode is entered
+            if (data == 1)
+                setPowerSaveMode(true);
+            else if (data == 0)
+                setPowerSaveMode(false);
+            break;
         case 0:
-            // output = (uint16_t)data;
-            // data   = output;
             setAltitude(atof(setPoint));
             break;
         case 1:
-            /* code */
             setBaro(atof(setPoint));
             break;
         case 2:
-            /* code */
             setInstrumentBrightnessRatio(atof(setPoint));
             break;
         case 100:
-            /* code */
             setScreenRotation(atoi(setPoint));
             break;
         default:
@@ -156,38 +167,15 @@ namespace Altimeter
 
     void update()
     {
-        // Do something which is required regulary
-        //   if(!powerSaveFlag)
-        //   {
-
-        //     if (prevBaroMode != baroMode)
-        //     {
-        //         if (baroMode == 1)
-        //         {
-        //             baroSpr.pushImage(0, 0, 320, 320, baro_hpa);
-        //         }
-        //         else baroSpr.pushImage(0, 0, 320, 320, baro_inhg);
-
-        //         prevBaroMode = baroMode;
-        //     }
-
-        //     analogWrite(TFT_BL, instrumentBrightness);
-
-        //     if(prevScreenRotation != screenRotation)
-        //     {
-        //         tft.setRotation(screenRotation);
-        //         prevScreenRotation = screenRotation;
-        //     }
-        //     drawAll();
-
-        //    }
-        //    else digitalWrite(TFT_BL, LOW);
+        // show start up logo for 3 seconds
+        if (millis() - startLogoMillis < 3000)
+            return;
 
         if (prevBaroMode != baroMode) {
             if (baroMode == 1) {
-                baroSpr.pushImage(0, 0, 320, 320, baro_hpa);
+                baroSpr->pushImage(0, 0, 320, 320, baro_hpa);
             } else
-                baroSpr.pushImage(0, 0, 320, 320, baro_inhg);
+                baroSpr->pushImage(0, 0, 320, 320, baro_inhg);
 
             prevBaroMode = baroMode;
         }
@@ -195,7 +183,7 @@ namespace Altimeter
         analogWrite(TFT_BL, instrumentBrightness);
 
         if (prevScreenRotation != screenRotation) {
-            tft.setRotation(screenRotation);
+            tft->setRotation(screenRotation);
             prevScreenRotation = screenRotation;
         }
         drawAll();
@@ -203,8 +191,9 @@ namespace Altimeter
 
     void drawAll()
     {
+        mainSpr->fillSprite(TFT_BLACK);
 
-        altimeterSpr.pushImage(0, 0, 320, 320, altimeter_main);
+        altimeterSpr->pushImage(0, 0, 320, 320, altimeter_main);
 
         thousand = (int)(altitude) % 10000;
         hundred  = (int)(altitude) % 1000;
@@ -219,19 +208,16 @@ namespace Altimeter
             angleBaro = angleBaro = scaleValue(baro, 28.6, 31.1, -120, 112);
         }
 
-        baroSpr.pushRotated(&mainSpr, -angleBaro, TFT_BLACK);
-        altimeterSpr.setSwapBytes(true);
-        altimeterSpr.pushImage(0, 0, 320, 320, altimeter_main);
-        needle10000Spr.pushRotated(&altimeterSpr, angleTenThousand, TFT_BLACK);
-        needle1000Spr.pushRotated(&altimeterSpr, angleThousand, TFT_BLACK);
-        needle100Spr.pushRotated(&altimeterSpr, angleHundred, TFT_BLACK);
+        baroSpr->pushRotated(mainSpr, -angleBaro, TFT_BLACK);
+        altimeterSpr->setSwapBytes(true);
+        altimeterSpr->pushImage(0, 0, 320, 320, altimeter_main);
+        needle10000Spr->pushRotated(altimeterSpr, angleTenThousand, TFT_BLACK);
+        needle1000Spr->pushRotated(altimeterSpr, angleThousand, TFT_BLACK);
+        needle100Spr->pushRotated(altimeterSpr, angleHundred, TFT_BLACK);
+        altimeterSpr->pushToSprite(mainSpr, 0, 0, TFT_BLACK);
 
-        altimeterSpr.pushToSprite(&mainSpr, 0, 0, TFT_BLACK);
-
-        mainSpr.pushSprite(80, 0);
-
-        mainSpr.fillSprite(TFT_BLACK);
-        // baroSpr.fillSprite(TFT_BLACK);
+        //mainSpr->pushSprite(80, 0);
+        tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
     }
 
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max)
