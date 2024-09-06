@@ -10,11 +10,13 @@ namespace TurnCoordinator
 
 #define PANEL_COLOR 0x7BEE
 
-    TFT_eSPI tft = TFT_eSPI();
-    TFT_eSprite TCmainSpr    = TFT_eSprite(&tft); // Main Sprite for Turn Coordinator
-    TFT_eSprite TCPlaneSpr   = TFT_eSprite(&tft); // Sprite for Turn Coordinator Airplane
-    TFT_eSprite slipBallSpr  = TFT_eSprite(&tft); // Sprite for slip ball
-    TFT_eSprite slipCtrLnSpr = TFT_eSprite(&tft); // Sprite for slip center line
+    TFT_eSPI    *tft;
+    TFT_eSprite *TCmainSpr;
+    TFT_eSprite *TCPlaneSpr;
+    TFT_eSprite *slipBallSpr;
+    TFT_eSprite *slipCtrLnSpr;
+    // Pointers to start of Sprites in RAM (these are then "image" pointers)
+    uint16_t *TCmainSprPtr;
 
     // Functions declrations
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
@@ -26,16 +28,17 @@ namespace TurnCoordinator
     void  drawGauge();
 
     // Variables
-    float turnAngle                     = 0;   // angle of the turn angle from the simulator Initial Value
-    float slipAngle                     = 0;   // angle of the slip from the simulator
-    float instrumentBrightnessRatio     = 1;   // instrument brightness ratio from sim
-    int   instrumentBrightness          = 255; // instrument brightness based on ratio. Value between 0 - 255
-    float prevInstrumentBrightnessRatio = 0;   // previous value of instrument brightness. If no change do not set instrument brightness to avoid flickers
-    float ballXPos                      = 0;   // X position of the ball
-    float ballYPos                      = 0;   // YPosition of the ball
-    bool  powerSaveFlag                 = false;
-    int   screenRotation                = 3;
-    int   prevScreenRotation            = 3;
+    float    turnAngle                     = 0;   // angle of the turn angle from the simulator Initial Value
+    float    slipAngle                     = 0;   // angle of the slip from the simulator
+    float    instrumentBrightnessRatio     = 1;   // instrument brightness ratio from sim
+    int      instrumentBrightness          = 255; // instrument brightness based on ratio. Value between 0 - 255
+    float    prevInstrumentBrightnessRatio = 0;   // previous value of instrument brightness. If no change do not set instrument brightness to avoid flickers
+    float    ballXPos                      = 0;   // X position of the ball
+    float    ballYPos                      = 0;   // YPosition of the ball
+    bool     powerSaveFlag                 = false;
+    int      screenRotation                = 3;
+    int      prevScreenRotation            = 3;
+    uint32_t startLogoMillis               = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -43,43 +46,52 @@ namespace TurnCoordinator
     ********************************************************************************** */
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
+        tft = _tft;
+        tft->setRotation(3);
+        tft->setPivot(320, 160);
+        tft->setSwapBytes(true);
+        tft->fillScreen(TFT_BLACK);
+        tft->startWrite(); // TFT chip select held low permanently
 
-        tft.setRotation(3);
-        tft.fillScreen(PANEL_COLOR);
-        tft.setPivot(320, 160);
-        tft.setSwapBytes(true);
-        tft.pushImage(160, 80, 160, 160, logo);
-        delay(3000);
-        tft.fillScreen(TFT_BLACK);
+        TCmainSpr    = &sprites[0];
+        slipBallSpr  = &sprites[1];
+        slipBallSpr  = &sprites[2];
+        slipCtrLnSpr = &sprites[3];
+        TCPlaneSpr   = &sprites[4];
 
-        TCmainSpr.createSprite(320, 320);
-        TCmainSpr.setSwapBytes(true);
-        TCmainSpr.fillSprite(TFT_BLACK);
-        TCmainSpr.pushImage(0, 0, 320, 320, tc_main_gauge);
+        TCmainSprPtr = (uint16_t *)TCmainSpr->createSprite(320, 320);
+        TCmainSpr->setSwapBytes(true);
+        TCmainSpr->fillSprite(TFT_BLACK);
+        TCmainSpr->pushImage(0, 0, 320, 320, tc_main_gauge);
 
-        slipBallSpr.createSprite(slip_ball_width, slip_ball_height);
-        slipBallSpr.setSwapBytes(false);
-        slipBallSpr.fillSprite(TFT_BLACK);
-        slipBallSpr.pushImage(0, 0, slip_ball_width, slip_ball_height, slip_ball);
+        slipBallSpr->createSprite(slip_ball_width, slip_ball_height);
+        slipBallSpr->setSwapBytes(false);
+        slipBallSpr->fillSprite(TFT_BLACK);
+        slipBallSpr->pushImage(0, 0, slip_ball_width, slip_ball_height, slip_ball);
 
-        slipCtrLnSpr.createSprite(slip_center_line_width, slip_center_line_height);
-        slipCtrLnSpr.setSwapBytes(false);
-        slipCtrLnSpr.fillSprite(TFT_BLACK);
-        slipCtrLnSpr.pushImage(0, 0, slip_center_line_width, slip_center_line_height, slip_center_line);
+        slipCtrLnSpr->createSprite(slip_center_line_width, slip_center_line_height);
+        slipCtrLnSpr->setSwapBytes(false);
+        slipCtrLnSpr->fillSprite(TFT_BLACK);
+        slipCtrLnSpr->pushImage(0, 0, slip_center_line_width, slip_center_line_height, slip_center_line);
 
-        TCPlaneSpr.createSprite(tc_plane_width, tc_plane_height);
-        TCPlaneSpr.setSwapBytes(true);
-        TCPlaneSpr.fillSprite(TFT_BLACK);
-        TCPlaneSpr.pushImage(0, 0, tc_plane_width, tc_plane_height, tc_plane);
-        TCPlaneSpr.setPivot(tc_plane_width / 2, 36);
+        TCPlaneSpr->createSprite(tc_plane_width, tc_plane_height);
+        TCPlaneSpr->setSwapBytes(true);
+        TCPlaneSpr->fillSprite(TFT_BLACK);
+        TCPlaneSpr->pushImage(0, 0, tc_plane_width, tc_plane_height, tc_plane);
+        TCPlaneSpr->setPivot(tc_plane_width / 2, 36);
+
+        tft->pushImage(160, 80, 160, 160, logo);
+        startLogoMillis = millis();
+        tft->setSwapBytes(false);
     }
 
     void stop()
     {
-        TCmainSpr.deleteSprite();
-        TCPlaneSpr.deleteSprite();
-        slipBallSpr.deleteSprite();
-        slipCtrLnSpr.deleteSprite();
+        tft->endWrite();
+        TCmainSpr->deleteSprite();
+        TCPlaneSpr->deleteSprite();
+        slipBallSpr->deleteSprite();
+        slipCtrLnSpr->deleteSprite();
     }
 
     void set(int16_t messageID, char *setPoint)
@@ -97,32 +109,24 @@ namespace TurnCoordinator
         int32_t  data = atoi(setPoint);
         uint16_t output;
 
-        // do something according your messageID
         switch (messageID) {
         case -1:
-            // // tbd., get's called when Mobiflight shuts down
             setPowerSaveMode(true);
         case -2:
-            // // tbd., get's called when PowerSavingMode is entered
             if (data == 1)
                 setPowerSaveMode(true);
             else if (data == 0)
                 setPowerSaveMode(false);
         case 0:
-            // output = (uint16_t)data;
-            // data   = output;
             setTurnAngle(atof(setPoint));
             break;
         case 1:
-            /* code */
             setSlipAngle(atof(setPoint));
             break;
         case 2:
-            /* code */
             setInstrumentBrightnessRatio(atof(setPoint));
             break;
         case 100:
-            /* code */
             setScreenRotation(atoi(setPoint));
             break;
         default:
@@ -132,26 +136,13 @@ namespace TurnCoordinator
 
     void update()
     {
-        // Do something which is required regulary
-        //   if(!powerSaveFlag)
-        //   {
-
-        //     analogWrite(TFT_BL, instrumentBrightness);
-
-        //     if(prevScreenRotation != screenRotation)
-        //     {
-        //         tft.setRotation(screenRotation);
-        //         prevScreenRotation = screenRotation;
-        //     }
-        //     drawGauge();
-
-        //    }
-        //    else digitalWrite(TFT_BL, LOW);
-
+        // show start up logo for 3 seconds
+        if (millis() - startLogoMillis < 3000)
+            return;
         analogWrite(TFT_BL, instrumentBrightness);
 
         if (prevScreenRotation != screenRotation) {
-            tft.setRotation(screenRotation);
+            tft->setRotation(screenRotation);
             prevScreenRotation = screenRotation;
         }
         drawGauge();
@@ -160,18 +151,18 @@ namespace TurnCoordinator
     void drawGauge()
     {
 
-        TCmainSpr.setPivot(160, 160);
-        TCmainSpr.pushImage(0, 0, 320, 320, tc_main_gauge);
+        TCmainSpr->setPivot(160, 160);
+        TCmainSpr->pushImage(0, 0, 320, 320, tc_main_gauge);
 
         ballXPos = scaleValue(slipAngle, 8, -8, 81, 209);
         ballYPos = cos((scaleValue(slipAngle / 2, 8, -8, -116, -244) - (-180)) * DEG_TO_RAD) * 36 + 153; // Approximation based on trial and error
-        slipBallSpr.pushToSprite(&TCmainSpr, ballXPos, ballYPos, TFT_BLACK);
+        slipBallSpr->pushToSprite(TCmainSpr, ballXPos, ballYPos, TFT_BLACK);
 
-        slipCtrLnSpr.pushToSprite(&TCmainSpr, 144, 190, TFT_BLACK);
+        slipCtrLnSpr->pushToSprite(TCmainSpr, 144, 190, TFT_BLACK);
 
-        TCPlaneSpr.pushRotated(&TCmainSpr, turnAngle, TFT_BLACK);
+        TCPlaneSpr->pushRotated(TCmainSpr, turnAngle, TFT_BLACK);
 
-        TCmainSpr.pushSprite(80, 0);
+        tft->pushImageDMA(80, 0, 320, 320, TCmainSprPtr);
     }
 
     void setTurnAngle(float angle)

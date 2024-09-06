@@ -86,7 +86,6 @@ namespace AttitudeIndicator
         tft->pushImage(160, 80, 160, 160, logo);
         startLogoMillis = millis();
         tft->setSwapBytes(false);
-        drawAll();
     }
 
     void stop()
