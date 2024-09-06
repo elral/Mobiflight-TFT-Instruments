@@ -29,7 +29,7 @@ namespace Altimeter
     void  setBaro(float value);
     void  setInstrumentBrightnessRatio(float ratio);
     void  setBaroMode(int mode);
-    void  setPowerSaveMode(bool enabled);
+    void  setPowerSave(bool enabled);
     void  setScreenRotation(int rotation);
 
     bool     _initialised;
@@ -141,13 +141,10 @@ namespace Altimeter
 
         switch (messageID) {
         case -1:
-            setPowerSaveMode(true);
+            setPowerSave(true);
             break;
         case -2:
-            if (data == 1)
-                setPowerSaveMode(true);
-            else if (data == 0)
-                setPowerSaveMode(false);
+            setPowerSave((bool)atoi(setPoint));
             break;
         case 0:
             setAltitude(atof(setPoint));
@@ -237,7 +234,7 @@ namespace Altimeter
         baroMode = mode;
     }
 
-    void setPowerSaveMode(bool enabled)
+    void setPowerSave(bool enabled)
     {
         if (enabled) {
             digitalWrite(TFT_BL, LOW);

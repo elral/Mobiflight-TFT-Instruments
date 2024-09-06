@@ -24,7 +24,7 @@ namespace AttitudeIndicator
     void  setPitch(float value);
     void  setRoll(float value);
     void  setScreenRotation(int rotation);
-    void  setPowerSaveMode(bool enabled);
+    void  setPowerSave(bool enabled);
     void  setInstrumentBrightnessRatio(float ratio);
 
     // Variables
@@ -46,7 +46,7 @@ namespace AttitudeIndicator
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
         pinMode(TFT_BL, OUTPUT);
-        
+
         tft = _tft;
         tft->setRotation(3);
         tft->setSwapBytes(true);
@@ -114,13 +114,10 @@ namespace AttitudeIndicator
 
         switch (messageID) {
         case -1:
-            setPowerSaveMode(true);
+            setPowerSave(true);
             break;
         case -2:
-            if (data == 1)
-                setPowerSaveMode(true);
-            else if (data == 0)
-                setPowerSaveMode(false);
+            setPowerSave((bool)atoi(setPoint));
             break;
         case 0:
             setPitch(atof(setPoint));
@@ -198,7 +195,7 @@ namespace AttitudeIndicator
         }
     }
 
-    void setPowerSaveMode(bool enabled)
+    void setPowerSave(bool enabled)
     {
         if (enabled)
             powerSaveFlag = true;

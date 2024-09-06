@@ -16,7 +16,7 @@ namespace VerticalSpeedIndicator
 
     // Function declaration
     void  setVerticalSpeed(float value);
-    void  setPowerSaveMode(bool enabled);
+    void  setPowerSave(bool enabled);
     void  setInstrumentBrightnessRatio(float ratio);
     void  setScreenRotation(int rotation);
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
@@ -90,13 +90,10 @@ namespace VerticalSpeedIndicator
         // do something according your messageID
         switch (messageID) {
         case -1:
-            setPowerSaveMode(true);
+            setPowerSave(true);
             break;
         case -2:
-            if (atoi(setPoint) == 1)
-                setPowerSaveMode(true);
-            else
-                setPowerSaveMode(false);
+            setPowerSave((bool)atoi(setPoint));
             break;
         case 0:
             setVerticalSpeed(atof(setPoint));
@@ -136,7 +133,7 @@ namespace VerticalSpeedIndicator
         VSIValue = value;
     }
 
-    void setPowerSaveMode(bool enabled)
+    void setPowerSave(bool enabled)
     {
         if (enabled) {
             digitalWrite(TFT_BL, LOW);

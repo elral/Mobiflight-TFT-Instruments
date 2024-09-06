@@ -30,7 +30,7 @@ namespace StandbyAttitudeMonitor
 #define digitsM     B612Font20
 #define digitsL     B612Font28
 
-    TFT_eSPI tft = TFT_eSPI();
+    TFT_eSPI    tft                 = TFT_eSPI();
     TFT_eSprite AttitudeIndSpr      = TFT_eSprite(&tft); // Sprite to hold attitude Indicator
     TFT_eSprite AttitudeIndBackSpr  = TFT_eSprite(&tft); // Sprite to hold attitude Indicator to fit only 240x320
     TFT_eSprite AttitudeIndBackSpr2 = TFT_eSprite(&tft); // Sprite to hold attitude Indicator to fit only 240x320
@@ -70,6 +70,7 @@ namespace StandbyAttitudeMonitor
     void  setBaro(float value);
     void  setInstrumentBrightness(float value);
     void  setScreenRotation(int rotation);
+    void  setPowerSave(bool enabled);
 
     // Variables
     float  pitch                     = 0;
@@ -84,6 +85,7 @@ namespace StandbyAttitudeMonitor
     float  baro                      = 0;    // baro value from sim
     float  instrumentBrightnessRatio = 0.75; // baro value from sim
     float  instrumentBrightness      = 192;
+    bool   powerSaveFlag             = false;
     int    screenRotation            = 3;
     int    prevScreenRotation        = 3;
 
@@ -95,7 +97,7 @@ namespace StandbyAttitudeMonitor
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
         pinMode(TFT_BL, OUTPUT);
-        
+
         tft.init();
         tft.setRotation(screenRotation);
         tft.fillScreen(PANEL_COLOR);
@@ -208,34 +210,25 @@ namespace StandbyAttitudeMonitor
         // do something according your messageID
         switch (messageID) {
         case -1:
-            // tbd., get's called when Mobiflight shuts down
-            analogWrite(TFT_BL, 0);
+            setPowerSave(true);
             break;
         case -2:
-            // tbd., get's called when PowerSavingMode is entered
-            if (atoi(setPoint) == 1)
-                analogWrite(TFT_BL, 0);
-            else if (atoi(setPoint) == 0)
-                analogWrite(TFT_BL, instrumentBrightness);
+            setPowerSave((bool)atoi(setPoint));
             break;
         case 0:
             setPitch(atof(setPoint));
             break;
         case 1:
-            // /* code */
             setRoll(atof(setPoint));
             break;
         case 2:
             setSlipAngle(atof(setPoint));
-            /* code */
             break;
         case 3:
             setAirSpeed(atof(setPoint));
-            /* code */
             break;
         case 4:
             setAltitude(atof(setPoint));
-            /* code */
             break;
         case 5:
             setHeading(atof(setPoint));
@@ -243,15 +236,12 @@ namespace StandbyAttitudeMonitor
             break;
         case 6:
             setBaro(atof(setPoint));
-            /* code */
             break;
         case 7:
             setInstrumentBrightness(atof(setPoint));
-            /* code */
             break;
         case 100:
             setScreenRotation(atoi(setPoint));
-            /* code */
             break;
         default:
             break;
@@ -305,6 +295,16 @@ namespace StandbyAttitudeMonitor
             screenRotation = rotation;
     }
 
+    void setPowerSave(bool enabled)
+    {
+        if (enabled) {
+            analogWrite(TFT_BL, 0);
+            powerSaveFlag = true;
+        } else {
+            analogWrite(TFT_BL, instrumentBrightness);
+            powerSaveFlag = false;
+        }
+    }
     void update()
     {
         // Do something which is required regulary

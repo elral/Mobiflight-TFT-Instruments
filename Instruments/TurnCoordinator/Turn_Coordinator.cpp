@@ -24,7 +24,7 @@ namespace TurnCoordinator
     void  setInstrumentBrightnessRatio(float ratio);
     void  setSlipAngle(double value);
     void  setScreenRotation(int value);
-    void  setPowerSaveMode(bool mode);
+    void  setPowerSave(bool mode);
     void  drawGauge();
 
     // Variables
@@ -47,7 +47,7 @@ namespace TurnCoordinator
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
         pinMode(TFT_BL, OUTPUT);
-        
+
         tft = _tft;
         tft->setRotation(3);
         tft->setPivot(320, 160);
@@ -113,12 +113,11 @@ namespace TurnCoordinator
 
         switch (messageID) {
         case -1:
-            setPowerSaveMode(true);
+            setPowerSave(true);
+            break;
         case -2:
-            if (data == 1)
-                setPowerSaveMode(true);
-            else if (data == 0)
-                setPowerSaveMode(false);
+            setPowerSave((bool)atoi(setPoint));
+            break;
         case 0:
             setTurnAngle(atof(setPoint));
             break;
@@ -189,7 +188,7 @@ namespace TurnCoordinator
             screenRotation = rotation;
     }
 
-    void setPowerSaveMode(bool enabled)
+    void setPowerSave(bool enabled)
     {
         if (enabled) {
             digitalWrite(TFT_BL, LOW);

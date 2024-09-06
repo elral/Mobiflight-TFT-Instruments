@@ -45,7 +45,7 @@ namespace AirspeedIndicator
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
     {
         pinMode(TFT_BL, OUTPUT);
-        
+
         tft = _tft;
         tft->setRotation(3);
         tft->fillScreen(PANEL_COLOR);
@@ -92,8 +92,7 @@ namespace AirspeedIndicator
             Put in your code to enter this mode (e.g. clear a display)
 
         ********************************************************************************** */
-        int32_t data = atoi(setPoint);
-        // do something according your messageID
+
         switch (messageID) {
         case -1:
             setPowerSave(true);
@@ -104,11 +103,9 @@ namespace AirspeedIndicator
             setAirspeed(atof(setPoint));
             break;
         case 1:
-            /* code */
             setInstrumentBrightnessRatio(atof(setPoint));
             break;
         case 100:
-            /* code */
             setScreenRotation(atoi(setPoint));
             break;
         default:
