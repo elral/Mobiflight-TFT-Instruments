@@ -141,6 +141,7 @@ namespace TurnCoordinator
         // show start up logo for 3 seconds
         if (millis() - startLogoMillis < 3000)
             return;
+
         TCmainSpr->setPivot(160, 160);
         TCmainSpr->pushImage(0, 0, 320, 320, tc_main_gauge);
 
