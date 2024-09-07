@@ -101,9 +101,10 @@ namespace StandbyAttitudeMonitor
         Change/add your code as needed.
     ********************************************************************************** */
 
-    void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
+    void init(TFT_eSPI *_tft, TFT_eSprite *sprites, uint8_t pin_backlight)
     {
-        pinMode(TFT_BL, OUTPUT);
+        backlight_pin = pin_backlight;
+        pinMode(backlight_pin, OUTPUT);
 
         tft = _tft;
         tft->setRotation(screenRotation);
@@ -336,10 +337,10 @@ namespace StandbyAttitudeMonitor
     void setPowerSave(bool enabled)
     {
         if (enabled) {
-            analogWrite(TFT_BL, 0);
+            analogWrite(backlight_pin, 0);
             powerSaveFlag = true;
         } else {
-            analogWrite(TFT_BL, instrumentBrightness);
+            analogWrite(backlight_pin, instrumentBrightness);
             powerSaveFlag = false;
         }
     }

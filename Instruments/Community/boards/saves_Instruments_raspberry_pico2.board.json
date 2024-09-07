@@ -22,9 +22,9 @@
       "CanResetBoard": true,
       "FirmwareBaseName": "instruments_raspberrypico",
       "FirmwareExtension": "uf2",
-      "FriendlyName": "MobiFlight Instruments RaspiPico2",
+      "FriendlyName": "Saves Instruments Pico2",
       "LatestFirmwareVersion": "0.9.0",
-      "MobiFlightType": "Mobiflight Intruments RaspiPico2",
+      "MobiFlightType": "Saves Instruments Pico2",
       "ResetFirmwareFile": "reset.tbd.uf2",
       "CustomDeviceTypes": [
         "StandbyAttitudeModule",
@@ -157,36 +157,6 @@
         "isI2C": false,
         "isPWM": true,
         "Pin": 16
-      },
-      {
-        "isAnalog": false,
-        "isI2C": false,
-        "isPWM": true,
-        "Pin": 17
-      },
-      {
-        "isAnalog": false,
-        "isI2C": false,
-        "isPWM": true,
-        "Pin": 18
-      },
-      {
-        "isAnalog": false,
-        "isI2C": false,
-        "isPWM": true,
-        "Pin": 19
-      },
-      {
-        "isAnalog": false,
-        "isI2C": false,
-        "isPWM": true,
-        "Pin": 20
-      },
-      {
-        "isAnalog": false,
-        "isI2C": false,
-        "isPWM": true,
-        "Pin": 21
       },
       {
         "isAnalog": false,
