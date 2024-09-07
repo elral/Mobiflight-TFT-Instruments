@@ -199,10 +199,13 @@ namespace AttitudeIndicator
 
     void setPowerSave(bool enabled)
     {
-        if (enabled)
+        if (enabled) {
+            digitalWrite(backlight_pin, LOW);
             powerSaveFlag = true;
-        else
+        } else {
+            analogWrite(backlight_pin, instrumentBrightness);
             powerSaveFlag = false;
+        }
     }
 
     void setInstrumentBrightnessRatio(float ratio)

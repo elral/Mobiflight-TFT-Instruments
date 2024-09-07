@@ -347,9 +347,10 @@ namespace StandbyAttitudeMonitor
     }
     void update()
     {
-        //        drawAttitudeIndicator();
-        //        drawSpeedIndicator();
-        //        drawAltitudeIndicator();
+        //drawAttitudeIndicator();
+        //drawSpeedIndicator();
+        //drawAltitudeIndicator();
+        
     }
 
     /* **********************************************************************************
