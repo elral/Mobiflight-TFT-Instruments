@@ -95,6 +95,7 @@ namespace StandbyAttitudeMonitor
     int      screenRotation            = 3;
     int      prevScreenRotation        = 3;
     uint32_t startLogoMillis           = 0;
+    uint8_t  backlight_pin             = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -320,7 +321,7 @@ namespace StandbyAttitudeMonitor
     {
         instrumentBrightnessRatio = value;
         instrumentBrightness      = (int)scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255);
-        analogWrite(TFT_BL, instrumentBrightness);
+        analogWrite(backlight_pin, instrumentBrightness);
     }
 
     void setScreenRotation(int rotation)

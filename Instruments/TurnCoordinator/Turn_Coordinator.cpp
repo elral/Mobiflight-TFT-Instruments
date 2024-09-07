@@ -165,7 +165,7 @@ namespace TurnCoordinator
     {
         instrumentBrightnessRatio = ratio;
         instrumentBrightness      = round(scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255));
-        analogWrite(TFT_BL, instrumentBrightness);
+        analogWrite(backlight_pin, instrumentBrightness);
     }
 
     void setSlipAngle(double value)
