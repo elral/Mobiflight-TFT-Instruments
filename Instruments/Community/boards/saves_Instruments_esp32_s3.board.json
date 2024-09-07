@@ -22,9 +22,9 @@
       "CanResetBoard": true,
       "FirmwareBaseName": "instruments_esp32s3",
       "FirmwareExtension": "bin",
-      "FriendlyName": "Mobiflight Intruments ESP32-S3",
+      "FriendlyName": "Saves Instruments ESP32-S3",
       "LatestFirmwareVersion": "0.9.0",
-      "MobiFlightType": "Mobiflight Intruments ESP32-S3",
+      "MobiFlightType": "Saves Instruments ESP32-S3",
       "ResetFirmwareFile": "reset.tbd.bin",
       "CustomDeviceTypes": [
         "StandbyAttitudeModule",
