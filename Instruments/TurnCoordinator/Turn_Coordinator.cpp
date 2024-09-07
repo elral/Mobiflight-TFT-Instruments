@@ -25,7 +25,6 @@ namespace TurnCoordinator
     void  setSlipAngle(double value);
     void  setScreenRotation(int value);
     void  setPowerSave(bool mode);
-    void  drawGauge();
 
     // Variables
     float    turnAngle                     = 0;   // angle of the turn angle from the simulator Initial Value
@@ -142,17 +141,6 @@ namespace TurnCoordinator
         // show start up logo for 3 seconds
         if (millis() - startLogoMillis < 3000)
             return;
-        analogWrite(backlight_pin, instrumentBrightness);
-
-        if (prevScreenRotation != screenRotation) {
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
-        }
-        drawGauge();
-    }
-
-    void drawGauge()
-    {
 
         TCmainSpr->setPivot(160, 160);
         TCmainSpr->pushImage(0, 0, 320, 320, tc_main_gauge);
@@ -177,6 +165,7 @@ namespace TurnCoordinator
     {
         instrumentBrightnessRatio = ratio;
         instrumentBrightness      = round(scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255));
+        analogWrite(backlight_pin, instrumentBrightness);
     }
 
     void setSlipAngle(double value)
@@ -188,6 +177,11 @@ namespace TurnCoordinator
     {
         if (rotation == 1 || rotation == 3)
             screenRotation = rotation;
+
+        if (prevScreenRotation != screenRotation) {
+            tft->setRotation(screenRotation);
+            prevScreenRotation = screenRotation;
+        }
     }
 
     void setPowerSave(bool enabled)

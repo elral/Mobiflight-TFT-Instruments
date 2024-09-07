@@ -289,12 +289,18 @@ namespace StandbyAttitudeMonitor
     {
         instrumentBrightnessRatio = value;
         instrumentBrightness      = (int)scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255);
+        analogWrite(backlight_pin, instrumentBrightness);
     }
 
     void setScreenRotation(int rotation)
     {
         if (rotation == 1 || rotation == 3)
             screenRotation = rotation;
+
+        if (prevScreenRotation != screenRotation) {
+            prevScreenRotation = screenRotation;
+            tft.setRotation(screenRotation);
+        }
     }
 
     void setPowerSave(bool enabled)
@@ -314,20 +320,8 @@ namespace StandbyAttitudeMonitor
         drawSpeedIndicator();
         drawAltitudeIndicator();
         // drawUpdate(1); // Update the sprites
-        analogWrite(backlight_pin, instrumentBrightness);
-
-        // set the screen rotation
-        if (prevScreenRotation != screenRotation) {
-            prevScreenRotation = screenRotation;
-            tft.setRotation(screenRotation);
-        }
+        
     }
-
-    // void loop2()
-    // {
-    //   pushUpdate(0); // Transfer top half
-    //   pushUpdate(1); // Transfer bottom half
-    // }
 
     /* **********************************************************************************
         Speed Indicator Section
