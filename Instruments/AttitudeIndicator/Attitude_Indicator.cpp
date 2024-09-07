@@ -37,15 +37,17 @@ namespace AttitudeIndicator
     int      screenRotation            = 3;
     int      prevScreenRotation        = 3;
     uint32_t startLogoMillis           = 0;
+    uint8_t  backlight_pin             = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
         Change/add your code as needed.
     ********************************************************************************** */
 
-    void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
+    void init(TFT_eSPI *_tft, TFT_eSprite *sprites, uint8_t pin_backlight)
     {
-        pinMode(TFT_BL, OUTPUT);
+        backlight_pin = pin_backlight;
+        pinMode(backlight_pin, OUTPUT);
 
         tft = _tft;
         tft->setRotation(3);
@@ -207,7 +209,7 @@ namespace AttitudeIndicator
     {
         instrumentBrightnessRatio = ratio;
         instrumentBrightness      = round(scaleValue(instrumentBrightnessRatio, 0, 1, 0, 255));
-        analogWrite(TFT_BL, instrumentBrightness);
+        analogWrite(backlight_pin, instrumentBrightness);
     }
 
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max)

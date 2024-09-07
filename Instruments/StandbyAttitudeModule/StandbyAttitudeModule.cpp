@@ -73,30 +73,32 @@ namespace StandbyAttitudeMonitor
     void  setPowerSave(bool enabled);
 
     // Variables
-    float  pitch                     = 0;
-    float  roll                      = 0;
-    float  newRoll                   = 0;
-    float  pitchPosition             = 0;
-    float  newPitch                  = 0;
-    float  slipAngle                 = 0;    // slip angle value from sim
-    float  airSpeed                  = 0;    // Air speed value from the sim
-    double altitude                  = 0;    // Altitude Value from the simulator
-    float  heading                   = 0;    // heading value from sim
-    float  baro                      = 0;    // baro value from sim
-    float  instrumentBrightnessRatio = 0.75; // baro value from sim
-    float  instrumentBrightness      = 192;
-    bool   powerSaveFlag             = false;
-    int    screenRotation            = 3;
-    int    prevScreenRotation        = 3;
+    float   pitch                     = 0;
+    float   roll                      = 0;
+    float   newRoll                   = 0;
+    float   pitchPosition             = 0;
+    float   newPitch                  = 0;
+    float   slipAngle                 = 0;    // slip angle value from sim
+    float   airSpeed                  = 0;    // Air speed value from the sim
+    double  altitude                  = 0;    // Altitude Value from the simulator
+    float   heading                   = 0;    // heading value from sim
+    float   baro                      = 0;    // baro value from sim
+    float   instrumentBrightnessRatio = 0.75; // baro value from sim
+    float   instrumentBrightness      = 192;
+    bool    powerSaveFlag             = false;
+    int     screenRotation            = 3;
+    int     prevScreenRotation        = 3;
+    uint8_t backlight_pin             = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
         Change/add your code as needed.
     ********************************************************************************** */
 
-    void init(TFT_eSPI *_tft, TFT_eSprite *sprites)
+    void init(TFT_eSPI *_tft, TFT_eSprite *sprites, uint8_t pin_backlight)
     {
-        pinMode(TFT_BL, OUTPUT);
+        backlight_pin = pin_backlight;
+        pinMode(backlight_pin, OUTPUT);
 
         tft.init();
         tft.setRotation(screenRotation);
@@ -298,10 +300,10 @@ namespace StandbyAttitudeMonitor
     void setPowerSave(bool enabled)
     {
         if (enabled) {
-            analogWrite(TFT_BL, 0);
+            analogWrite(backlight_pin, 0);
             powerSaveFlag = true;
         } else {
-            analogWrite(TFT_BL, instrumentBrightness);
+            analogWrite(backlight_pin, instrumentBrightness);
             powerSaveFlag = false;
         }
     }
@@ -312,7 +314,7 @@ namespace StandbyAttitudeMonitor
         drawSpeedIndicator();
         drawAltitudeIndicator();
         // drawUpdate(1); // Update the sprites
-        analogWrite(TFT_BL, instrumentBrightness);
+        analogWrite(backlight_pin, instrumentBrightness);
 
         // set the screen rotation
         if (prevScreenRotation != screenRotation) {
