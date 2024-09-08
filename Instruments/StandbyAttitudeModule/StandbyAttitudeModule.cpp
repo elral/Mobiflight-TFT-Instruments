@@ -106,6 +106,7 @@ namespace StandbyAttitudeMonitor
     {
         backlight_pin = pin_backlight;
         pinMode(backlight_pin, OUTPUT);
+        digitalWrite(backlight_pin, HIGH);
 
         tft = _tft;
         tft->setRotation(screenRotation);
