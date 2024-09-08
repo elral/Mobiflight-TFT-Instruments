@@ -99,6 +99,7 @@ namespace StandbyAttitudeMonitor
     {
         backlight_pin = pin_backlight;
         pinMode(backlight_pin, OUTPUT);
+        digitalWrite(backlight_pin, HIGH);
 
         tft.init();
         tft.setRotation(screenRotation);
