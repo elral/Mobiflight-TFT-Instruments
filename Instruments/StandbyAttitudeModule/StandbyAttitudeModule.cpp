@@ -47,6 +47,7 @@ namespace StandbyAttitudeMonitor
     TFT_eSprite *speedIndBoxSpr;     // Sprite to hold speed indicator box
     TFT_eSprite *altIndBoxSpr;       // Sprite to hold altitude indicator box
     TFT_eSprite *baroBoxSpr;         // Sprite to holdt the Baro Box
+    TFT_eSprite *displaySpr;         // Sprite for complete display
     // Pointers to start of Sprites in RAM (these are then "image" pointers)
     uint16_t *AttitudeIndSprPtr;
     uint16_t *slipIndicatorSprPtr;
@@ -54,6 +55,8 @@ namespace StandbyAttitudeMonitor
     uint16_t *speedIndicatorSprPtr;
     uint16_t *rollIndicatorSprPtr;
     uint16_t *planeSprPtr;
+    uint16_t *AltitudeIndSprPtr;
+    uint16_t *displaySprPtr;
 
     // Function declarations
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
@@ -106,16 +109,14 @@ namespace StandbyAttitudeMonitor
     {
         backlight_pin = pin_backlight;
         pinMode(backlight_pin, OUTPUT);
+        digitalWrite(backlight_pin, HIGH);
 
         tft = _tft;
         tft->setRotation(screenRotation);
-        tft->fillScreen(PANEL_COLOR);
         tft->setPivot(320, 160);
         tft->setSwapBytes(true);
-        tft->pushImage(160, 80, 160, 160, logo);
-        delay(3000);
-        tft->fillScreen(PANEL_COLOR);
-        tft->fillCircle(240, 160, 160, TFT_BLACK);
+        tft->fillScreen(TFT_BLACK);
+        tft->startWrite(); // TFT chip select held low permanently
 
         AttitudeIndSpr     = &sprites[0];
         AttitudeIndBackSpr = &sprites[1];
@@ -133,9 +134,10 @@ namespace StandbyAttitudeMonitor
         headingBoxSpr      = &sprites[13];
         baroBoxSpr         = &sprites[14];
         ballSpr            = &sprites[15];
+        displaySpr         = &sprites[16];
 
         AttitudeIndSprPtr = (uint16_t *)AttitudeIndSpr->createSprite(400, 400);
-        AttitudeIndSpr->setSwapBytes(false);
+        AttitudeIndSpr->setSwapBytes(true);
         AttitudeIndSpr->fillSprite(TFT_BLACK);
         AttitudeIndSpr->setPivot(200, 200);
 
@@ -152,6 +154,11 @@ namespace StandbyAttitudeMonitor
         rollIndicatorSpr->fillSprite(TFT_BLACK);
 
         // Draw the slip indicator sprite
+        ballSpr->createSprite(ballWidth, ballHeight);
+        ballSpr->fillSprite(TFT_BLACK);
+        ballSpr->pushImage(0, 0, ballWidth, ballHeight, ball);
+        ballSpr->setSwapBytes(false);
+
         slipIndicatorSprPtr = (uint16_t *)slipIndicatorSpr->createSprite(slipIndicatorWidth, slipIndicatorHeight);
         slipIndicatorSpr->setSwapBytes(false);
         slipIndicatorSpr->fillSprite(TFT_BLACK);
@@ -172,44 +179,52 @@ namespace StandbyAttitudeMonitor
         chevronDownSpr->fillSprite(TFT_BLACK);
         chevronDownSpr->pushImage(0, 0, 76, 36, chevron_down);
 
-        speedIndicatorSprPtr = (uint16_t *)SpeedIndicatorSpr->createSprite(120, 320);
-        SpeedIndicatorSpr->setSwapBytes(false);
-        SpeedIndicatorSpr->fillSprite(TFT_BLACK);
-
-        AltitudeIndSpr->createSprite(120, 320);
+        // Altutude Indicator sprites
+        AltitudeIndSprPtr = (uint16_t *)AltitudeIndSpr->createSprite(120, 320);
         AltitudeIndSpr->setSwapBytes(false);
         AltitudeIndSpr->fillSprite(TFT_BLACK);
 
         altIndBoxSpr->createSprite(altitude_indicator_box_2_width, altitude_indicator_box_2_height);
-        altIndBoxSpr->setSwapBytes(false);
+        altIndBoxSpr->setSwapBytes(true);
         altIndBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
 
+        baroBoxSpr->createSprite(baro_box_width, baro_box_height);
+        baroBoxSpr->setSwapBytes(true);
+        baroBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
+
+        // Speed Indicator sprites
+        speedIndicatorSprPtr = (uint16_t *)SpeedIndicatorSpr->createSprite(120, 320);
+        SpeedIndicatorSpr->setSwapBytes(false);
+        SpeedIndicatorSpr->fillSprite(TFT_BLACK);
+
         speedIndBoxSpr->createSprite(speed_indicator_box_2_width, speed_indicator_box_2_height);
-        speedIndBoxSpr->setSwapBytes(false);
+        speedIndBoxSpr->setSwapBytes(true);
         speedIndBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
 
         headingBoxSpr->createSprite(heading_box_width, heading_box_height);
-        headingBoxSpr->setSwapBytes(false);
+        headingBoxSpr->setSwapBytes(true);
         headingBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
 
-        baroBoxSpr->createSprite(baro_box_width, baro_box_height);
-        baroBoxSpr->setSwapBytes(false);
-        baroBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
+        // complete display, contains all 3 instruments
+        displaySprPtr = (uint16_t *)displaySpr->createSprite(480, 320);
+        displaySpr->setSwapBytes(true);
+        displaySpr->fillSprite(TFT_BLACK);
+        AttitudeIndSpr->setPivot(240, 160);
 
-        ballSpr->createSprite(ballWidth, ballHeight);
-        ballSpr->fillSprite(TFT_BLACK);
-        ballSpr->pushImage(0, 0, ballWidth, ballHeight, ball);
-        ballSpr->setSwapBytes(false);
+        tft->pushImage(160, 80, 160, 160, logo);
+        startLogoMillis = millis();
+        tft->setSwapBytes(false);
 
         drawAttitudeIndicator();
         drawSpeedIndicator();
         drawAltitudeIndicator();
+        tft->pushImageDMA(0, 0, 480, 320, displaySprPtr);
     }
 
     void stop()
     {
+        tft->endWrite();
         AttitudeIndSpr->deleteSprite();
-        //        AttitudeIndBackSpr->deleteSprite();
         planeSpr->deleteSprite();
         rollScaleSpr->deleteSprite();
         pitchScaleSpr->deleteSprite();
@@ -224,6 +239,7 @@ namespace StandbyAttitudeMonitor
         speedIndBoxSpr->deleteSprite();
         altIndBoxSpr->deleteSprite();
         baroBoxSpr->deleteSprite();
+        displaySpr->deleteSprite();
     }
 
     void set(int16_t messageID, char *setPoint)
@@ -347,10 +363,14 @@ namespace StandbyAttitudeMonitor
     }
     void update()
     {
-        //drawAttitudeIndicator();
-        //drawSpeedIndicator();
-        //drawAltitudeIndicator();
-        
+        // show start up logo for 3 seconds
+        if (millis() - startLogoMillis < 3000)
+            return;
+
+        drawAttitudeIndicator();
+        drawSpeedIndicator();
+        drawAltitudeIndicator();
+        tft->pushImageDMA(0, 0, 480, 320, displaySprPtr);
     }
 
     /* **********************************************************************************
@@ -359,23 +379,22 @@ namespace StandbyAttitudeMonitor
 
     void drawSpeedIndicator()
     {
-
         drawSpeedIndicatorLines();
         speedIndBoxSpr->pushImage(0, 0, speed_indicator_box_2_width, speed_indicator_box_2_height, speed_indicator_box_2);
-        speedIndBoxSpr->setSwapBytes(true);
         drawSpeedIndicatorValues();
         speedIndBoxSpr->pushToSprite(SpeedIndicatorSpr, 21, 137, TFT_BLACK);
 
         headingBoxSpr->pushImage(0, 0, heading_box_width, heading_box_height, heading_box);
-        headingBoxSpr->setSwapBytes(true);
         headingBoxSpr->setTextColor(TFT_GREEN);
         headingBoxSpr->setTextDatum(MC_DATUM);
         // headingBoxSpr->setFreeFont(FSSB12);
         headingBoxSpr->loadFont(digitsM);
         headingBoxSpr->drawString(String((int)round(heading)), heading_box_width / 2, heading_box_height / 2 + 4);
         headingBoxSpr->pushToSprite(SpeedIndicatorSpr, 12, 267, TFT_BLACK);
-        tft->setViewport(0, 0, 120, 320);
-        SpeedIndicatorSpr->pushSprite(0, 0);
+        
+        // Better would  be that the sprites above directly copied to displaySpr sprite!!
+        SpeedIndicatorSpr->pushToSprite(displaySpr,0, 0);
+
         headingBoxSpr->fillSprite(TFT_BLACK);
         SpeedIndicatorSpr->fillSprite(TFT_BLACK);
     }
@@ -465,15 +484,11 @@ namespace StandbyAttitudeMonitor
     void drawAltitudeIndicator()
     {
         drawAltitudeIndicatorLines();
-        // altIndBoxSpr->setSwapBytes(true);
         altIndBoxSpr->pushImage(0, 0, altitude_indicator_box_2_width, altitude_indicator_box_2_height, altitude_indicator_box_2);
-        altIndBoxSpr->setSwapBytes(true);
         drawAltitudeIndicatorValues();
         altIndBoxSpr->pushToSprite(AltitudeIndSpr, 2, 140, TFT_BLACK);
 
-        baroBoxSpr->setSwapBytes(true);
         baroBoxSpr->pushImage(0, 0, baro_box_width, baro_box_height, baro_box);
-
         baroBoxSpr->setTextColor(TFT_GREEN);
         baroBoxSpr->setTextDatum(MC_DATUM);
         // baroBoxSpr->setFreeFont(FSSB12);
@@ -481,8 +496,8 @@ namespace StandbyAttitudeMonitor
         baroBoxSpr->drawString(String(baro), baro_box_width / 2, baro_box_height / 2 + 10);
         baroBoxSpr->pushToSprite(AltitudeIndSpr, 34, 268, TFT_BLACK);
 
-        tft->setViewport(360, 0, 480, 320);
-        AltitudeIndSpr->pushSprite(0, 0);
+        // Better would  be that the sprites above directly copied to displaySpr sprite!!
+        AltitudeIndSpr->pushToSprite(displaySpr,360, 0);
         AltitudeIndSpr->fillSprite(TFT_BLACK);
         baroBoxSpr->fillSprite(TFT_BLACK);
     }
@@ -663,7 +678,6 @@ namespace StandbyAttitudeMonitor
         AttitudeIndSpr->setPivot(200, 200);
 
         // Draw the pitch scale sprite
-
         drawPitchScale(pitch);
         pitchScaleSpr->pushToSprite(AttitudeIndSpr, 59 + 80, 88 + 40, TFT_BLACK);
 
@@ -673,38 +687,30 @@ namespace StandbyAttitudeMonitor
         rollScaleSpr->pushToSprite(AttitudeIndSpr, 17 + 80, 42 + 40, TFT_BLACK);
         rollScaleSpr->fillSprite(TFT_BLACK);
 
-        // Finally, rotate the Attitude indicator sprite and copy to AttitudeIndBackSpr
-        // AttitudeIndSpr->pushRotated(&AttitudeIndBackSpr, newRoll, TFT_BLACK);
-
         slipIndicatorSpr->pushImage(0, 0, slipIndicatorWidth, slipIndicatorHeight, slip_indicator);
-
         // Draw the the ball. The degree of is -8 to 8 degrees according to the sim values by trial and error
-
         drawBall();
         slipIndicatorSpr->setSwapBytes(true);
-        // slipIndicatorSpr->pushToSprite(&AttitudeIndBackSpr, 73, 264, TFT_BLACK);
         slipIndicatorSpr->setPivot(slipIndicatorWidth / 2, -135);
         slipIndicatorSpr->pushRotated(AttitudeIndSpr, newRoll * -1.0, TFT_BLACK);
 
         // Draw the roll indicator sprite
-
         rollIndicatorSpr->setSwapBytes(true);
         rollIndicatorSpr->pushImage(0, 0, rollIndicatorWidth, rollIndicatorHeight, roll_indicator);
         rollIndicatorSpr->setPivot(rollIndicatorWidth / 2, 90);
         rollIndicatorSpr->pushRotated(AttitudeIndSpr, newRoll * -1.0, TFT_RED);
-        // rollIndicatorSpr->pushToSprite(AttitudeIndBackSpr, 114, 66, TFT_RED);
 
         // Draw the plane indicator
         planeSpr->pushImage(0, 0, planeIndicatorWidth, planeIndicatorHeight, plane_indicator);
-        // planeSpr->pushToSprite(AttitudeIndBackSpr, 13, 154, TFT_BLACK);
         planeSpr->setPivot(planeIndicatorWidth / 2, 5);
         planeSpr->pushRotated(AttitudeIndSpr, newRoll * -1.0, TFT_BLACK);
 
-        tft->setViewport(120, 0, 240, 320);
-        tft->setSwapBytes(false);
+        // Better would  be that the sprites above directly copied to displaySpr sprite!!
         tft->setPivot(240, 160);
-        AttitudeIndSpr->pushRotated(newRoll, TFT_BLACK);
-        // AttitudeIndBackSpr.pushSprite(120, 0, TFT_BLACK);
+        AttitudeIndSpr->pushRotated(displaySpr, newRoll, TFT_BLACK);
+        displaySpr->fillRect(0,0,120,320,TFT_BLACK);
+        displaySpr->fillRect(360,0,120,320,TFT_BLACK);
+
         pitchScaleSpr->fillSprite(TFT_BLACK);
         AttitudeIndSpr->fillScreen(TFT_BLACK);
     }
