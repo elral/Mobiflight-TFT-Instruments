@@ -129,7 +129,7 @@ namespace StandbyAttitudeMonitor
         displaySpr        = &sprites[15];
 
         AttitudeIndSpr->createSprite(400, 400);
-        AttitudeIndSpr->setSwapBytes(true);
+        AttitudeIndSpr->setSwapBytes(false);
         AttitudeIndSpr->fillSprite(TFT_BLACK);
         AttitudeIndSpr->setPivot(200, 200);
 
@@ -657,7 +657,6 @@ namespace StandbyAttitudeMonitor
 
     void drawAll()
     {
-
         // Draw main sprite that holds the sky and ground
         AttitudeIndSpr->fillRect(0, 0, 400, pitchPosition + 40, SKY_BLUE);
         AttitudeIndSpr->fillRect(0, pitchPosition + 40, 400, 400, BROWN);
@@ -671,8 +670,7 @@ namespace StandbyAttitudeMonitor
         // Draw the roll scale sprite
         rollScaleSpr->pushImage(0, 0, rollScaleWidth, rollScaleHeight, roll_scale);
         rollScaleSpr->pushToSprite(AttitudeIndSpr, 17 + 80, 42 + 40, TFT_BLACK);
-        rollScaleSpr->fillSprite(TFT_BLACK);
-
+        
         slipIndicatorSpr->pushImage(0, 0, slipIndicatorWidth, slipIndicatorHeight, slip_indicator);
         // Draw the the ball. The degree of is -8 to 8 degrees according to the sim values by trial and error
         drawBall();
@@ -695,6 +693,7 @@ namespace StandbyAttitudeMonitor
         displaySpr->fillRect(360, 0, 120, 320, PANEL_COLOR);
 
         pitchScaleSpr->fillSprite(TFT_BLACK);
+        rollScaleSpr->fillSprite(TFT_BLACK);
         AttitudeIndSpr->fillScreen(TFT_BLACK);
     }
 
