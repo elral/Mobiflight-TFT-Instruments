@@ -50,7 +50,6 @@ namespace AirspeedIndicator
 
         tft = _tft;
         tft->setRotation(3);
-        tft->fillScreen(PANEL_COLOR);
         tft->setPivot(320, 160);
         tft->setSwapBytes(true);
         tft->fillScreen(TFT_BLACK);
@@ -65,7 +64,6 @@ namespace AirspeedIndicator
         mainSpr->setPivot(160, 160);
 
         ASIneedleSpr->createSprite(asi_needle_width, asi_needle_height);
-        ASIneedleSpr->setSwapBytes(false);
         ASIneedleSpr->setPivot(asi_needle_width / 2, 133);
         ASIneedleSpr->setSwapBytes(true);
 
