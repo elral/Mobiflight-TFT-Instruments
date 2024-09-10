@@ -168,9 +168,9 @@ namespace AirspeedIndicator
             screenRotation = rotation;
     
         if (prevScreenRotation != screenRotation) {
-            tft->fillScreen(TFT_BLACK);
-            prevScreenRotation = screenRotation;
+            tft->dmaWait();
             tft->setRotation(screenRotation);
+            prevScreenRotation = screenRotation;
         }
     }
 

@@ -333,8 +333,9 @@ namespace StandbyAttitudeMonitor
             screenRotation = rotation;
 
         if (prevScreenRotation != screenRotation) {
-            prevScreenRotation = screenRotation;
+            tft->dmaWait();
             tft->setRotation(screenRotation);
+            prevScreenRotation = screenRotation;
         }
     }
 

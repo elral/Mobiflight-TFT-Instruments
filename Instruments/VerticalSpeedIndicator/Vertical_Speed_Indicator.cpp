@@ -160,6 +160,7 @@ namespace VerticalSpeedIndicator
             screenRotation = rotation;
     
         if (prevScreenRotation != screenRotation) {
+            tft->dmaWait();
             tft->setRotation(screenRotation);
             prevScreenRotation = screenRotation;
         }
