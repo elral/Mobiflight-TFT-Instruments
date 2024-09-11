@@ -52,6 +52,8 @@ namespace Altimeter
     int      prevScreenRotation        = 3;
     uint32_t startLogoMillis           = 0;
     uint8_t  backlight_pin             = 0;
+    uint16_t instrumentX0              = 80;
+    uint16_t instrumentY0              = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -198,7 +200,7 @@ namespace Altimeter
         altimeterSpr->pushToSprite(mainSpr, 0, 0, TFT_BLACK);
 
         // mainSpr->pushSprite(80, 0);
-        tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
+        tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
     }
 
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max)
@@ -250,14 +252,18 @@ namespace Altimeter
 
     void setScreenRotation(int rotation)
     {
-        if (rotation == 1 || rotation == 3)
-            screenRotation = rotation;
-
-        if (prevScreenRotation != screenRotation) {
+        if (rotation >= 0 && rotation <= 3) {
+            prevScreenRotation = rotation;
             tft->dmaWait();
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
+            tft->setRotation(rotation);
         }
 
+        if (rotation == 1 || rotation == 3) {
+            instrumentX0 = 80;
+            instrumentY0 = 0;
+        } else {
+            instrumentX0 = 0;
+            instrumentY0 = 80;
+        }
     }
 }

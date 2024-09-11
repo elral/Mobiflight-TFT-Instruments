@@ -35,10 +35,11 @@ namespace TurnCoordinator
     float    ballXPos                      = 0;   // X position of the ball
     float    ballYPos                      = 0;   // YPosition of the ball
     bool     powerSaveFlag                 = false;
-    int      screenRotation                = 3;
     int      prevScreenRotation            = 3;
     uint32_t startLogoMillis               = 0;
     uint8_t  backlight_pin                 = 0;
+    uint16_t instrumentX0                  = 80;
+    uint16_t instrumentY0                  = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -154,7 +155,7 @@ namespace TurnCoordinator
 
         TCPlaneSpr->pushRotated(TCmainSpr, turnAngle, TFT_BLACK);
 
-        tft->pushImageDMA(80, 0, 320, 320, TCmainSprPtr);
+        tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, TCmainSprPtr);
     }
 
     void setTurnAngle(float angle)
@@ -176,13 +177,18 @@ namespace TurnCoordinator
 
     void setScreenRotation(int rotation)
     {
-        if (rotation == 1 || rotation == 3)
-            screenRotation = rotation;
-
-        if (prevScreenRotation != screenRotation) {
+        if (rotation >= 0 && rotation <= 3) {
+            prevScreenRotation = rotation;
             tft->dmaWait();
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
+            tft->setRotation(rotation);
+        }
+
+        if (rotation == 1 || rotation == 3) {
+            instrumentX0 = 80;
+            instrumentY0 = 0;
+        } else {
+            instrumentX0 = 0;
+            instrumentY0 = 80;
         }
     }
 

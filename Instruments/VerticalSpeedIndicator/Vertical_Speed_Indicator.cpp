@@ -26,11 +26,12 @@ namespace VerticalSpeedIndicator
     float    VSIAngle                  = 0; // Angle of needle based on the VSI Value
     float    instrumentBrightnessRatio = 1;
     int      instrumentBrightness      = 255;
-    int      screenRotation            = 3;
     int      prevScreenRotation        = 3;
     bool     powerSaveFlag             = false;
     uint32_t startLogoMillis           = 0;
     uint8_t  backlight_pin             = 0;
+    uint16_t instrumentX0              = 80;
+    uint16_t instrumentY0              = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -43,7 +44,7 @@ namespace VerticalSpeedIndicator
         digitalWrite(backlight_pin, HIGH);
 
         tft = _tft;
-        tft->setRotation(screenRotation);
+        tft->setRotation(3);
         tft->setPivot(240, 160);
         tft->setSwapBytes(true);
         tft->setViewport(0, 0, 480, 320, false);
@@ -128,7 +129,7 @@ namespace VerticalSpeedIndicator
         VSIAngle = scaleValue(VSIValue, -2000, 2000, 102, 438); // The needle starts at -90 degrees
         VSImainSpr->pushImage(0, 0, 320, 320, vsi_main_gauge);
         VSINeedleSpr->pushRotated(VSImainSpr, VSIAngle, TFT_BLACK);
-        tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
+        tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
     }
 
     void setVerticalSpeed(float value)
@@ -156,13 +157,18 @@ namespace VerticalSpeedIndicator
 
     void setScreenRotation(int rotation)
     {
-        if (rotation == 1 || rotation == 3)
-            screenRotation = rotation;
-    
-        if (prevScreenRotation != screenRotation) {
+        if (rotation >= 0 && rotation <= 3) {
+            prevScreenRotation = rotation;
             tft->dmaWait();
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
+            tft->setRotation(rotation);
+        }
+
+        if (rotation == 1 || rotation == 3) {
+            instrumentX0 = 80;
+            instrumentY0 = 0;
+        } else {
+            instrumentX0 = 0;
+            instrumentY0 = 80;
         }
     }
 

@@ -15,7 +15,6 @@ namespace HeadingIndicator
     TFT_eSprite *hdgBugSpr;
     // Pointers to start of Sprites in RAM (these are then "image" pointers)
     uint16_t *mainGaugeSprPtr;
-    
 
     // Function declarations
     void  setHeading(float value);
@@ -35,6 +34,8 @@ namespace HeadingIndicator
     bool     powerSaveFlag             = false;
     uint32_t startLogoMillis           = 0;
     uint8_t  backlight_pin             = 0;
+    uint16_t instrumentX0              = 80;
+    uint16_t instrumentY0              = 0;
 
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites, uint8_t pin_backlight)
     {
@@ -53,7 +54,7 @@ namespace HeadingIndicator
         compassRoseSpr = &sprites[1];
         hdgBugSpr      = &sprites[2];
 
-        mainGaugeSprPtr = (uint16_t*)mainGaugeSpr->createSprite(320, 320);
+        mainGaugeSprPtr = (uint16_t *)mainGaugeSpr->createSprite(320, 320);
         mainGaugeSpr->setSwapBytes(true);
         mainGaugeSpr->fillSprite(TFT_BLACK);
         mainGaugeSpr->pushImage(0, 0, 320, 320, main_gauge);
@@ -133,8 +134,7 @@ namespace HeadingIndicator
         hdgBugSpr->pushRotated(compassRoseSpr, hdgBug, TFT_BLACK);
         compassRoseSpr->pushRotated(mainGaugeSpr, heading, TFT_BLACK);
 
-        //mainGaugeSpr->pushSprite(0, 0);
-        tft->pushImageDMA(80, 0, 320, 320, mainGaugeSprPtr);
+        tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainGaugeSprPtr);
         compassRoseSpr->fillSprite(TFT_BLACK);
         mainGaugeSpr->fillSprite(TFT_BLACK);
     }
@@ -165,9 +165,11 @@ namespace HeadingIndicator
         }
 
         if (rotation == 1 || rotation == 3) {
-
-        } else if (rotation == 0 || rotation == 2) {
-
+            instrumentX0 = 80;
+            instrumentY0 = 0;
+        } else {
+            instrumentX0 = 0;
+            instrumentY0 = 80;
         }
     }
 

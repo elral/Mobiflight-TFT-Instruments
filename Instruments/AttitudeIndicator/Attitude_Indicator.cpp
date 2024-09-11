@@ -34,10 +34,11 @@ namespace AttitudeIndicator
     bool     powerSaveFlag             = false;
     float    instrumentBrightnessRatio = 1;
     int      instrumentBrightness      = 255;
-    int      screenRotation            = 3;
     int      prevScreenRotation        = 3;
     uint32_t startLogoMillis           = 0;
     uint8_t  backlight_pin             = 0;
+    uint16_t instrumentX0              = 80;
+    uint16_t instrumentY0              = 0;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -166,10 +167,10 @@ namespace AttitudeIndicator
         bezelSpr->pushRotated(backgroundSpr, roll, TFT_BLACK);
 
         // mainSpr->pushRotated(-roll, TFT_BLACK);
-        // pushRotated is not available for DMA, use instead a helper sprite
-        // (background) and copy this one as last step rotated to the main sprite
+        // pushRotated is not available for DMA, use instead a helper sprite (background)
+        // and copy this one as last step rotated to the main sprite
         backgroundSpr->pushRotated(mainSpr, -roll, TFT_BLACK);
-        tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
+        tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
     }
 
     void setPitch(float value)
@@ -189,13 +190,18 @@ namespace AttitudeIndicator
 
     void setScreenRotation(int rotation)
     {
-        if (rotation == 1 || rotation == 3)
-            screenRotation = rotation;
-        
-        if (prevScreenRotation != screenRotation) {
+        if (rotation >= 0 && rotation <= 3) {
+            prevScreenRotation = rotation;
             tft->dmaWait();
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
+            tft->setRotation(rotation);
+        }
+
+        if (rotation == 1 || rotation == 3) {
+            instrumentX0 = 80;
+            instrumentY0 = 0;
+        } else {
+            instrumentX0 = 0;
+            instrumentY0 = 80;
         }
     }
 
