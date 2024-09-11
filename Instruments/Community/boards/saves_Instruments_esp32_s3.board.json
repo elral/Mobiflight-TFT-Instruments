@@ -32,7 +32,8 @@
         "Attitude_Indicator",
         "Turn_Coordinator",
         "Altimeter",
-        "Vertical_Speed_Indicator"
+        "Vertical_Speed_Indicator",
+        "Heading_Indicator"
       ],
       "Community": {
         "Project": "Displays for ESP32-S3",
