@@ -25,6 +25,7 @@ namespace TurnCoordinator
     void  setSlipAngle(double value);
     void  setScreenRotation(int value);
     void  setPowerSave(bool mode);
+    void  drawInstrument();
 
     // Variables
     float    turnAngle                     = 0;   // angle of the turn angle from the simulator Initial Value
@@ -40,6 +41,7 @@ namespace TurnCoordinator
     uint8_t  backlight_pin                 = 0;
     uint16_t instrumentX0                  = 80;
     uint16_t instrumentY0                  = 0;
+    bool     showLogo                      = true;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -143,7 +145,14 @@ namespace TurnCoordinator
         // show start up logo for 3 seconds
         if (millis() - startLogoMillis < 3000)
             return;
+        if (showLogo) {
+            drawInstrument();
+            showLogo = false;
+        }
+    }
 
+    void drawInstrument()
+    {
         TCmainSpr->setPivot(160, 160);
         TCmainSpr->pushImage(0, 0, 320, 320, tc_main_gauge);
 
@@ -161,6 +170,7 @@ namespace TurnCoordinator
     void setTurnAngle(float angle)
     {
         turnAngle = angle;
+        drawInstrument();
     }
 
     void setInstrumentBrightnessRatio(float ratio)
@@ -173,6 +183,7 @@ namespace TurnCoordinator
     void setSlipAngle(double value)
     {
         slipAngle = value;
+        drawInstrument();
     }
 
     void setScreenRotation(int rotation)
@@ -190,6 +201,7 @@ namespace TurnCoordinator
             instrumentX0 = 0;
             instrumentY0 = 80;
         }
+        drawInstrument();
     }
 
     void setPowerSave(bool enabled)

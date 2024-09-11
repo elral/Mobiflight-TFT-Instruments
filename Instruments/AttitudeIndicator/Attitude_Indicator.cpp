@@ -26,6 +26,7 @@ namespace AttitudeIndicator
     void  setScreenRotation(int rotation);
     void  setPowerSave(bool enabled);
     void  setInstrumentBrightnessRatio(float ratio);
+    void  drawInstrument();
 
     // Variables
     float    pitch                     = 0; // pitch value from sim
@@ -39,6 +40,7 @@ namespace AttitudeIndicator
     uint8_t  backlight_pin             = 0;
     uint16_t instrumentX0              = 80;
     uint16_t instrumentY0              = 0;
+    bool     showLogo                  = true;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -145,7 +147,14 @@ namespace AttitudeIndicator
         // show start up logo for 3 seconds
         if (millis() - startLogoMillis < 3000)
             return;
+        if (showLogo) {
+            drawInstrument();
+            showLogo = false;
+        }
+    }
 
+    void drawInstrument()
+    {
         mainSpr->fillSprite(TFT_BLACK);
         backgroundSpr->fillSprite(TFT_BLACK);
 
@@ -181,11 +190,14 @@ namespace AttitudeIndicator
             pitch = -40;
         else
             pitch = value;
+
+        drawInstrument();
     }
 
     void setRoll(float value)
     {
         roll = value;
+        drawInstrument();
     }
 
     void setScreenRotation(int rotation)
@@ -203,6 +215,7 @@ namespace AttitudeIndicator
             instrumentX0 = 0;
             instrumentY0 = 80;
         }
+        drawInstrument();
     }
 
     void setPowerSave(bool enabled)

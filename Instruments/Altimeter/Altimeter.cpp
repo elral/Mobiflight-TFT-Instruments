@@ -31,6 +31,7 @@ namespace Altimeter
     void  setBaroMode(int mode);
     void  setPowerSave(bool enabled);
     void  setScreenRotation(int rotation);
+    void  drawInstrument();
 
     bool     _initialised;
     uint8_t  _pin1, _pin2, _pin3;
@@ -54,6 +55,7 @@ namespace Altimeter
     uint8_t  backlight_pin             = 0;
     uint16_t instrumentX0              = 80;
     uint16_t instrumentY0              = 0;
+    bool     showLogo                  = true;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -173,7 +175,14 @@ namespace Altimeter
         // show start up logo for 3 seconds
         if (millis() - startLogoMillis < 3000)
             return;
+        if (showLogo) {
+            drawInstrument();
+            showLogo = false;
+        }
+    }
 
+    void drawInstrument()
+    {
         mainSpr->fillSprite(TFT_BLACK);
 
         altimeterSpr->pushImage(0, 0, 320, 320, altimeter_main);
@@ -211,6 +220,7 @@ namespace Altimeter
     void setAltitude(float value)
     {
         altitude = value;
+        drawInstrument();
     }
 
     void setBaro(float value)
@@ -225,6 +235,7 @@ namespace Altimeter
 
             prevBaroMode = baroMode;
         }
+        drawInstrument();
     }
 
     void setInstrumentBrightnessRatio(float ratio)
@@ -265,5 +276,6 @@ namespace Altimeter
             instrumentX0 = 0;
             instrumentY0 = 80;
         }
+        drawInstrument();
     }
 }

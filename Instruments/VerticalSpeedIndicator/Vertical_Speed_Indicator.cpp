@@ -20,6 +20,7 @@ namespace VerticalSpeedIndicator
     void  setInstrumentBrightnessRatio(float ratio);
     void  setScreenRotation(int rotation);
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
+    void  drawInstrument();
 
     // Variables
     float    VSIValue                  = 0; // Vertical Speed Value returned from the simlulator
@@ -32,6 +33,7 @@ namespace VerticalSpeedIndicator
     uint8_t  backlight_pin             = 0;
     uint16_t instrumentX0              = 80;
     uint16_t instrumentY0              = 0;
+    bool     showLogo                  = true;
 
     /* **********************************************************************************
         This is just the basic code to set up your custom device.
@@ -118,7 +120,14 @@ namespace VerticalSpeedIndicator
         // show start up logo for 3 seconds
         if (millis() - startLogoMillis < 3000)
             return;
+        if (showLogo) {
+            drawInstrument();
+            showLogo = false;
+        }
+    }
 
+    void drawInstrument()
+    {
         // Limit to -2000 to 2000 ft/sec
         if (VSIValue > 2000)
             VSIValue = 2000;
@@ -135,6 +144,7 @@ namespace VerticalSpeedIndicator
     void setVerticalSpeed(float value)
     {
         VSIValue = value;
+        drawInstrument();
     }
 
     void setPowerSave(bool enabled)
@@ -170,6 +180,7 @@ namespace VerticalSpeedIndicator
             instrumentX0 = 0;
             instrumentY0 = 80;
         }
+        drawInstrument();
     }
 
     // Scale function

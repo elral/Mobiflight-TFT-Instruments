@@ -26,6 +26,7 @@ namespace AirspeedIndicator
     void  setAirspeed(float value);
     void  setPowerSave(bool enabled);
     void  setScreenRotation(int rotation);
+    void  drawInstrument();
 
     // Variables
     uint16_t altitude                  = 0;
@@ -39,6 +40,7 @@ namespace AirspeedIndicator
     uint8_t  backlight_pin             = 0;
     uint16_t instrumentX0              = 80;
     uint16_t instrumentY0              = 0;
+    bool     showLogo                  = true;
 
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites, uint8_t pin_backlight)
     {
@@ -116,7 +118,14 @@ namespace AirspeedIndicator
         // show start up logo for 3 seconds
         if (millis() - startLogoMillis < 3000)
             return;
+        if (showLogo) {
+            drawInstrument();
+            showLogo = false;
+        }
+    }
 
+    void drawInstrument()
+    {
         mainSpr->fillSprite(TFT_BLACK);
         mainSpr->pushImage(0, 0, 320, 320, asi_main_gauge);
 
@@ -137,6 +146,8 @@ namespace AirspeedIndicator
             ASIneedleRotation = scaleValue(airSpeed, 41, 200, 21, 321);
         else if (airSpeed > 200)
             airSpeed = 200;
+
+        drawInstrument();
     }
 
     void setInstrumentBrightnessRatio(float ratio)
@@ -173,6 +184,7 @@ namespace AirspeedIndicator
             instrumentX0 = 0;
             instrumentY0 = 80;
         }
+        drawInstrument();
     }
 
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max)
