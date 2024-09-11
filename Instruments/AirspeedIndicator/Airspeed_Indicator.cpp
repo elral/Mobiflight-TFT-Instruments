@@ -34,15 +34,10 @@ namespace AirspeedIndicator
     float    ASIneedleRotation         = 0; // angle of rotation of needle based on the Indicated AirSpeed
     float    airSpeed                  = 0;
     bool     powerSaveFlag             = false;
-    int      screenRotation            = 3;
     int      prevScreenRotation        = 3;
     uint32_t startLogoMillis           = 0;
     uint8_t  backlight_pin             = 0;
 
-    /* **********************************************************************************
-        This is just the basic code to set up your custom device.
-        Change/add your code as needed.
-    ********************************************************************************** */
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites, uint8_t pin_backlight)
     {
         backlight_pin = pin_backlight;
@@ -164,13 +159,10 @@ namespace AirspeedIndicator
 
     void setScreenRotation(int rotation)
     {
-        if (rotation == 1 || rotation == 3)
-            screenRotation = rotation;
-    
-        if (prevScreenRotation != screenRotation) {
+        if (rotation == 1 || rotation == 3) {
             tft->dmaWait();
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
+            tft->setRotation(rotation);
+            prevScreenRotation = rotation;
         }
     }
 

@@ -7,6 +7,8 @@
 #include "Turn_Coordinator.h"
 #include "Altimeter.h"
 #include "Vertical_Speed_Indicator.h"
+//#include "Heading_Indicator.h"
+#include "HeadingIndicator/Heading_Indicator.h"
 
 #define GFXFF 1
 #define GLCD  0
@@ -24,6 +26,7 @@ enum {
     TURN_COORDINATOR,
     ALTIMETER,
     VERTICAL_SPEED_INDICATOR,
+    HEADING_INDICATOR,
     LAST_INSTRUMENT // MUST be always at last position!!
 };
 
