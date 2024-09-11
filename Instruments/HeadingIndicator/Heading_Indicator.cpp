@@ -1,29 +1,33 @@
-#include "Vertical_Speed_Indicator.h"
+#include "Heading_Indicator.h"
 
-namespace VerticalSpeedIndicator
+namespace HeadingIndicator
 {
-#include "./include/vsi_main_gauge.h"
-#include "./include/vsi_needle.h"
 #include "./include/logo.h"
+#include "./include/main_gauge.h"
+#include "./include/compass_rose.h"
+#include "./include/hdg_bug.h"
 
 #define PANEL_COLOR 0x7BEE
 
     TFT_eSPI    *tft;
-    TFT_eSprite *VSImainSpr;
-    TFT_eSprite *VSINeedleSpr;
-    // Pointer to start of Sprite in RAM (these are then "image" pointers)
-    uint16_t *mainSprPtr;
+    TFT_eSprite *mainGaugeSpr;
+    TFT_eSprite *compassRoseSpr;
+    TFT_eSprite *hdgBugSpr;
+    // Pointers to start of Sprites in RAM (these are then "image" pointers)
+    uint16_t *mainGaugeSprPtr;
 
-    // Function declaration
-    void  setVerticalSpeed(float value);
-    void  setPowerSave(bool enabled);
+    // Function declarations
+    void  setHeading(float value);
+    void  setHeadingBug(float value);
     void  setInstrumentBrightnessRatio(float ratio);
     void  setScreenRotation(int rotation);
+    void  setPowerSaveMode(bool enabled);
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
 
     // Variables
-    float    VSIValue                  = 0; // Vertical Speed Value returned from the simlulator
-    float    VSIAngle                  = 0; // Angle of needle based on the VSI Value
+    int      data;
+    float    heading                   = 0; // Heading value from sim
+    float    hdgBug                    = 0; // heading bug value from sim
     float    instrumentBrightnessRatio = 1;
     int      instrumentBrightness      = 255;
     int      prevScreenRotation        = 3;
@@ -33,10 +37,6 @@ namespace VerticalSpeedIndicator
     uint16_t instrumentX0              = 80;
     uint16_t instrumentY0              = 0;
 
-    /* **********************************************************************************
-        This is just the basic code to set up your custom device.
-        Change/add your code as needed.
-    ********************************************************************************** */
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites, uint8_t pin_backlight)
     {
         backlight_pin = pin_backlight;
@@ -45,37 +45,44 @@ namespace VerticalSpeedIndicator
 
         tft = _tft;
         tft->setRotation(3);
-        tft->setPivot(240, 160);
+        tft->setPivot(320, 160);
         tft->setSwapBytes(true);
-        tft->setViewport(0, 0, 480, 320, false);
         tft->fillScreen(TFT_BLACK);
         tft->startWrite(); // TFT chip select held low permanently
 
-        VSImainSpr   = &sprites[0];
-        VSINeedleSpr = &sprites[1];
+        mainGaugeSpr   = &sprites[0];
+        compassRoseSpr = &sprites[1];
+        hdgBugSpr      = &sprites[2];
 
-        mainSprPtr = (uint16_t *)VSImainSpr->createSprite(320, 320);
-        VSImainSpr->setSwapBytes(false);
-        VSImainSpr->fillSprite(TFT_BLACK);
-        VSImainSpr->pushImage(0, 0, 320, 320, vsi_main_gauge);
-        VSImainSpr->setPivot(160, 160);
+        mainGaugeSprPtr = (uint16_t *)mainGaugeSpr->createSprite(320, 320);
+        mainGaugeSpr->setSwapBytes(true);
+        mainGaugeSpr->fillSprite(TFT_BLACK);
+        mainGaugeSpr->pushImage(0, 0, 320, 320, main_gauge);
+        mainGaugeSpr->setPivot(160, 160);
 
-        VSINeedleSpr->createSprite(vsi_needle_width, vsi_needle_height);
-        VSINeedleSpr->setSwapBytes(false);
-        VSINeedleSpr->fillScreen(TFT_BLACK);
-        VSINeedleSpr->pushImage(0, 0, vsi_needle_width, vsi_needle_height, vsi_needle);
-        VSINeedleSpr->setPivot(vsi_needle_width / 2, 134);
+        compassRoseSpr->createSprite(320, 320);
+        compassRoseSpr->setSwapBytes(true);
+        compassRoseSpr->fillSprite(TFT_BLACK);
+        compassRoseSpr->pushImage(0, 0, 320, 320, compass_rose);
+        compassRoseSpr->setPivot(160, 160);
 
-        // show start up logo
+        hdgBugSpr->createSprite(hdg_bug_width, hdg_bug_height);
+        hdgBugSpr->setSwapBytes(true);
+        hdgBugSpr->fillSprite(TFT_BLACK);
+        hdgBugSpr->pushImage(0, 0, hdg_bug_width, hdg_bug_height, hdg_bug);
+        hdgBugSpr->setPivot(hdg_bug_width / 2.0, 153);
+
         tft->pushImage(160, 80, 160, 160, logo);
         startLogoMillis = millis();
+        tft->setSwapBytes(false);
     }
 
     void stop()
     {
         tft->endWrite();
-        VSImainSpr->deleteSprite();
-        VSINeedleSpr->deleteSprite();
+        mainGaugeSpr->deleteSprite();
+        compassRoseSpr->deleteSprite();
+        hdgBugSpr->deleteSprite();
     }
 
     void set(int16_t messageID, char *setPoint)
@@ -94,15 +101,18 @@ namespace VerticalSpeedIndicator
         // do something according your messageID
         switch (messageID) {
         case -1:
-            setPowerSave(true);
+            setPowerSaveMode(true);
             break;
         case -2:
-            setPowerSave((bool)atoi(setPoint));
+            setPowerSaveMode((bool)atoi(setPoint));
             break;
         case 0:
-            setVerticalSpeed(atof(setPoint));
+            setHeading(atof(setPoint));
             break;
         case 1:
+            setHeadingBug(atof(setPoint));
+            break;
+        case 2:
             setInstrumentBrightnessRatio(atof(setPoint));
             break;
         case 100:
@@ -119,33 +129,24 @@ namespace VerticalSpeedIndicator
         if (millis() - startLogoMillis < 3000)
             return;
 
-        // Limit to -2000 to 2000 ft/sec
-        if (VSIValue > 2000)
-            VSIValue = 2000;
-        else if (VSIValue < -2000)
-            VSIValue = -2000;
+        mainGaugeSpr->pushImage(0, 0, 320, 320, main_gauge);
+        compassRoseSpr->pushImage(0, 0, 320, 320, compass_rose);
+        hdgBugSpr->pushRotated(compassRoseSpr, hdgBug, TFT_BLACK);
+        compassRoseSpr->pushRotated(mainGaugeSpr, heading, TFT_BLACK);
 
-        VSImainSpr->fillSprite(TFT_BLACK);
-        VSIAngle = scaleValue(VSIValue, -2000, 2000, 102, 438); // The needle starts at -90 degrees
-        VSImainSpr->pushImage(0, 0, 320, 320, vsi_main_gauge);
-        VSINeedleSpr->pushRotated(VSImainSpr, VSIAngle, TFT_BLACK);
-        tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
+        tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainGaugeSprPtr);
+        compassRoseSpr->fillSprite(TFT_BLACK);
+        mainGaugeSpr->fillSprite(TFT_BLACK);
     }
 
-    void setVerticalSpeed(float value)
+    void setHeading(float value)
     {
-        VSIValue = value;
+        heading = value * -1.0; // Direction is reversed compared to the sim
     }
 
-    void setPowerSave(bool enabled)
+    void setHeadingBug(float value)
     {
-        if (enabled) {
-            digitalWrite(backlight_pin, LOW);
-            powerSaveFlag = true;
-        } else {
-            analogWrite(backlight_pin, instrumentBrightness);
-            powerSaveFlag = false;
-        }
+        hdgBug = value;
     }
 
     void setInstrumentBrightnessRatio(float ratio)
@@ -172,9 +173,22 @@ namespace VerticalSpeedIndicator
         }
     }
 
+    void setPowerSaveMode(bool enabled)
+    {
+        if (enabled) {
+            digitalWrite(backlight_pin, LOW);
+            tft->fillScreen(TFT_BLACK);
+            powerSaveFlag = true;
+        } else {
+            analogWrite(backlight_pin, instrumentBrightness);
+            powerSaveFlag = false;
+        }
+    }
+
     // Scale function
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max)
     {
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
+
 }

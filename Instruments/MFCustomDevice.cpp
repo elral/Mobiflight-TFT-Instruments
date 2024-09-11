@@ -2,7 +2,6 @@
 #include "commandmessenger.h"
 #include "allocateMem.h"
 #include "MFEEPROM.h"
-#include <SPI.h>
 #ifdef HAS_CONFIG_IN_FLASH
 #include "MFCustomDevicesConfig.h"
 #else
@@ -106,6 +105,8 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
         _customType = ALTIMETER;
     else if (strcmp(parameter, "Vertical_Speed_Indicator") == 0)
         _customType = VERTICAL_SPEED_INDICATOR;
+    else if (strcmp(parameter, "Heading_Indicator") == 0)
+        _customType = HEADING_INDICATOR;
 
     if (_customType > 0 && _customType < LAST_INSTRUMENT) {
         /* **********************************************************************************
@@ -190,6 +191,8 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
         Altimeter::init(tft, spr, _pin1);
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
         VerticalSpeedIndicator::init(tft, spr, _pin1);
+    } else if (_customType == HEADING_INDICATOR) {
+        HeadingIndicator::init(tft, spr, _pin1);
     }
 
     _initialized = true;
@@ -215,6 +218,8 @@ void MFCustomDevice::detach()
         Altimeter::stop();
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
         VerticalSpeedIndicator::stop();
+    } else if (_customType == HEADING_INDICATOR) {
+        HeadingIndicator::stop();
     }
 }
 
@@ -246,6 +251,8 @@ void MFCustomDevice::update()
         Altimeter::update();
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
         VerticalSpeedIndicator::update();
+    } else if (_customType == HEADING_INDICATOR) {
+        HeadingIndicator::update();
     }
 }
 
@@ -270,5 +277,7 @@ void MFCustomDevice::set(int16_t messageID, char *setPoint)
         Altimeter::set(messageID, setPoint);
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
         VerticalSpeedIndicator::set(messageID, setPoint);
+    } else if (_customType == HEADING_INDICATOR) {
+        HeadingIndicator::set(messageID, setPoint);
     }
 }

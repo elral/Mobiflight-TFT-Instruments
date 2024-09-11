@@ -34,15 +34,12 @@ namespace AirspeedIndicator
     float    ASIneedleRotation         = 0; // angle of rotation of needle based on the Indicated AirSpeed
     float    airSpeed                  = 0;
     bool     powerSaveFlag             = false;
-    int      screenRotation            = 3;
     int      prevScreenRotation        = 3;
     uint32_t startLogoMillis           = 0;
     uint8_t  backlight_pin             = 0;
+    uint16_t instrumentX0              = 80;
+    uint16_t instrumentY0              = 0;
 
-    /* **********************************************************************************
-        This is just the basic code to set up your custom device.
-        Change/add your code as needed.
-    ********************************************************************************** */
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites, uint8_t pin_backlight)
     {
         backlight_pin = pin_backlight;
@@ -56,7 +53,7 @@ namespace AirspeedIndicator
         tft->fillScreen(TFT_BLACK);
         tft->startWrite(); // TFT chip select held low permanently
 
-        mainSpr       = &sprites[0];
+        mainSpr      = &sprites[0];
         ASIneedleSpr = &sprites[1];
         baroInfoSpr  = &sprites[2];
 
@@ -119,16 +116,15 @@ namespace AirspeedIndicator
         // show start up logo for 3 seconds
         if (millis() - startLogoMillis < 3000)
             return;
-       
+
         mainSpr->fillSprite(TFT_BLACK);
         mainSpr->pushImage(0, 0, 320, 320, asi_main_gauge);
-        
+
         ASIneedleSpr->fillSprite(TFT_BLACK);
         ASIneedleSpr->pushImage(0, 0, asi_needle_width, asi_needle_height, asi_needle);
         ASIneedleSpr->pushRotated(mainSpr, ASIneedleRotation, TFT_BLACK);
 
-        tft->pushImageDMA(80, 0, 320, 320, mainSprPtr);
-
+        tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
     }
 
     void setAirspeed(float value)
@@ -164,13 +160,18 @@ namespace AirspeedIndicator
 
     void setScreenRotation(int rotation)
     {
-        if (rotation == 1 || rotation == 3)
-            screenRotation = rotation;
-    
-        if (prevScreenRotation != screenRotation) {
+        if (rotation >= 0 && rotation <= 3) {
+            prevScreenRotation = rotation;
             tft->dmaWait();
-            tft->setRotation(screenRotation);
-            prevScreenRotation = screenRotation;
+            tft->setRotation(rotation);
+        }
+
+        if (rotation == 1 || rotation == 3) {
+            instrumentX0 = 80;
+            instrumentY0 = 0;
+        } else {
+            instrumentX0 = 0;
+            instrumentY0 = 80;
         }
     }
 
