@@ -1,0 +1,41 @@
+{
+    "$schema": "./mfdevice.schema.json",
+    "Info": {
+      "Label": "Heading Indicator",
+      "Type": "Heading_Indicator",
+      "Author": "Save Sabanal",
+      "URL": "https://github.com/savesabanal01",
+      "Version" : "1.0.0"
+    },
+    "Config": {
+      "Pins": [
+        "Pin 1",
+        "Pin 2",
+        "Pin 3"
+      ],
+      "isI2C": false
+    },
+    "MessageTypes": [
+      {
+        "id": 0,
+        "label": "Show Heading Value",
+        "description": "$ will be displayed as Heading value"
+      },
+      {
+        "id": 1,
+        "label": "Show Heading Bug Value",
+        "description": "$ will be displayed as Heading Bug value"
+      },
+      {
+        "id": 2,
+        "label": "Show Instrument Brightness Value",
+        "description": "$ will be displayed as Instrument Brightness value"
+      },
+      {
+        "id": 100,
+        "label": "Set Screen Rotation",
+        "description": "0 = Portrait, 1 = Landscape, 2 = Portrait (flipped), 3 = Landscape (flipped)"
+      }
+    ]
+  }
+  
