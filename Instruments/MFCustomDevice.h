@@ -1,13 +1,12 @@
 #pragma once
 
 #include <Arduino.h>
-#include "StandbyAttitudeModule.h"
-#include "Airspeed_Indicator.h"
-#include "Attitude_Indicator.h"
-#include "Turn_Coordinator.h"
-#include "Altimeter.h"
-#include "Vertical_Speed_Indicator.h"
-//#include "Heading_Indicator.h"
+#include "StandbyAttitudeModule/StandbyAttitudeModule.h"
+#include "AirspeedIndicator/Airspeed_Indicator.h"
+#include "AttitudeIndicator/Attitude_Indicator.h"
+#include "TurnCoordinator/Turn_Coordinator.h"
+#include "Altimeter/Altimeter.h"
+#include "VerticalSpeedIndicator/Vertical_Speed_Indicator.h"
 #include "HeadingIndicator/Heading_Indicator.h"
 
 #define GFXFF 1
