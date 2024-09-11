@@ -23,6 +23,7 @@ namespace HeadingIndicator
     void  setScreenRotation(int rotation);
     void  setPowerSaveMode(bool enabled);
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max);
+    void  drawInstrument();
 
     // Variables
     int      data;
@@ -36,6 +37,7 @@ namespace HeadingIndicator
     uint8_t  backlight_pin             = 0;
     uint16_t instrumentX0              = 80;
     uint16_t instrumentY0              = 0;
+    bool     showLogo                  = true;
 
     void init(TFT_eSPI *_tft, TFT_eSprite *sprites, uint8_t pin_backlight)
     {
@@ -125,6 +127,11 @@ namespace HeadingIndicator
 
     void update()
     {
+        drawInstrument();
+    }
+
+    void drawInstrument()
+    {
         // show start up logo for 3 seconds
         if (millis() - startLogoMillis < 3000)
             return;
@@ -142,11 +149,13 @@ namespace HeadingIndicator
     void setHeading(float value)
     {
         heading = value * -1.0; // Direction is reversed compared to the sim
+        drawInstrument();
     }
 
     void setHeadingBug(float value)
     {
         hdgBug = value;
+        drawInstrument();
     }
 
     void setInstrumentBrightnessRatio(float ratio)
@@ -171,6 +180,7 @@ namespace HeadingIndicator
             instrumentX0 = 0;
             instrumentY0 = 80;
         }
+        drawInstrument();
     }
 
     void setPowerSaveMode(bool enabled)
