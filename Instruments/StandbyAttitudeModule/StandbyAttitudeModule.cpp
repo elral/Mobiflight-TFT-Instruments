@@ -379,11 +379,10 @@ namespace StandbyAttitudeMonitor
         headingBoxSpr->loadFont(digitsM);
         headingBoxSpr->drawString(String((int)round(heading)), heading_box_width / 2, heading_box_height / 2 + 4);
         headingBoxSpr->pushToSprite(SpeedIndicatorSpr, 12, 267, TFT_BLACK);
+        headingBoxSpr->fillSprite(TFT_BLACK);
 
         // Better would  be that the sprites above directly copied to displaySpr sprite!!
         SpeedIndicatorSpr->pushToSprite(displaySpr, 0, 0);
-
-        headingBoxSpr->fillSprite(TFT_BLACK);
         SpeedIndicatorSpr->fillSprite(BACKGROUND_COLOR);
     }
 
@@ -483,11 +482,11 @@ namespace StandbyAttitudeMonitor
         baroBoxSpr->loadFont(digitsS);
         baroBoxSpr->drawString(String(baro), baro_box_width / 2, baro_box_height / 2 + 10);
         baroBoxSpr->pushToSprite(AltitudeIndSpr, 34, 268, TFT_BLACK);
+        baroBoxSpr->fillSprite(TFT_BLACK);
 
-        // Better would  be that the sprites above directly copied to displaySpr sprite!!
+        // Better would be that the sprites above directly copied to displaySpr sprite!!
         AltitudeIndSpr->pushToSprite(displaySpr, 360, 0);
         AltitudeIndSpr->fillSprite(BACKGROUND_COLOR);
-        baroBoxSpr->fillSprite(TFT_BLACK);
     }
 
     void drawAltitudeIndicatorLines()
@@ -690,8 +689,6 @@ namespace StandbyAttitudeMonitor
 
         // Better would  be that the sprites above directly copied to displaySpr sprite!!
         AttitudeIndSpr->pushRotated(displaySpr, newRoll, TFT_BLACK);
-        displaySpr->fillRect(0, 0, 120, 320, PANEL_COLOR);
-        displaySpr->fillRect(360, 0, 120, 320, PANEL_COLOR);
 
         pitchScaleSpr->fillSprite(TFT_BLACK);
         rollScaleSpr->fillSprite(TFT_BLACK);
