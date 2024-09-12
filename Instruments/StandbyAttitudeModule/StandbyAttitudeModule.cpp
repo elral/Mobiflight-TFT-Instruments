@@ -16,7 +16,12 @@ namespace StandbyAttitudeMonitor
 #include "./include/altitude_indicator_box_2.h"
 #include "./include/speed_indicator_box_2.h"
 #include "./include/baro_box.h"
+#ifdef USE_ALTITUDE_SPRITE
+#endif
+#ifdef USE_SPEED_SPRITE
 #include "./include/heading_box.h"
+#endif
+#include "./include/B612Font16.h"
 #include "./include/B612Font18.h"
 #include "./include/B612Font20.h"
 #include "./include/B612Font28.h"
@@ -27,22 +32,23 @@ namespace StandbyAttitudeMonitor
 #define GRAY             0x18C3
 #define PANEL_COLOR      0x7BEE
 #define BACKGROUND_COLOR 0x18C3
+#define digitsXS         B612Font16
 #define digitsS          B612Font18
 #define digitsM          B612Font20
 #define digitsL          B612Font28
 
     TFT_eSPI    *tft;
-    TFT_eSprite *AttitudeIndSpr;    // Sprite to hold attitude Indicator
-    TFT_eSprite *planeSpr;          // Plane Indicator Sprite
-    TFT_eSprite *rollScaleSpr;      // Roll Scale Sprite
-    TFT_eSprite *pitchScaleSpr;     // Pitch Scale Sprite
-    TFT_eSprite *rollIndicatorSpr;  // Roll Indicator Sprite
-    TFT_eSprite *slipIndicatorSpr;  // Slip Indicator Sprite
-    TFT_eSprite *ballSpr;           // Ball Sprite
-    TFT_eSprite *chevronUpSpr;      // Chevron pointing up
-    TFT_eSprite *chevronDownSpr;    // Chevron pointing down
-    TFT_eSprite *AltitudeIndSpr;    // Sprite to hold the altitude indicator
-    TFT_eSprite *displaySpr;        // Sprite for complete display
+    TFT_eSprite *AttitudeIndSpr;   // Sprite to hold attitude Indicator
+    TFT_eSprite *planeSpr;         // Plane Indicator Sprite
+    TFT_eSprite *rollScaleSpr;     // Roll Scale Sprite
+    TFT_eSprite *pitchScaleSpr;    // Pitch Scale Sprite
+    TFT_eSprite *rollIndicatorSpr; // Roll Indicator Sprite
+    TFT_eSprite *slipIndicatorSpr; // Slip Indicator Sprite
+    TFT_eSprite *ballSpr;          // Ball Sprite
+    TFT_eSprite *chevronUpSpr;     // Chevron pointing up
+    TFT_eSprite *chevronDownSpr;   // Chevron pointing down
+    TFT_eSprite *AltitudeIndSpr;   // Sprite to hold the altitude indicator
+    TFT_eSprite *displaySpr;       // Sprite for complete display
     // Pointers to start of Sprites in RAM (these are then "image" pointers)
     uint16_t *displaySprPtr;
 
@@ -105,17 +111,17 @@ namespace StandbyAttitudeMonitor
         tft->fillScreen(TFT_BLACK);
         tft->startWrite(); // TFT chip select held low permanently
 
-        AttitudeIndSpr    = &sprites[0];
-        pitchScaleSpr     = &sprites[1];
-        rollScaleSpr      = &sprites[2];
-        rollIndicatorSpr  = &sprites[3];
-        slipIndicatorSpr  = &sprites[4];
-        planeSpr          = &sprites[5];
-        chevronUpSpr      = &sprites[6];
-        chevronDownSpr    = &sprites[7];
-        AltitudeIndSpr    = &sprites[8];
-        ballSpr           = &sprites[9];
-        displaySpr        = &sprites[10];
+        AttitudeIndSpr   = &sprites[0];
+        pitchScaleSpr    = &sprites[1];
+        rollScaleSpr     = &sprites[2];
+        rollIndicatorSpr = &sprites[3];
+        slipIndicatorSpr = &sprites[4];
+        planeSpr         = &sprites[5];
+        chevronUpSpr     = &sprites[6];
+        chevronDownSpr   = &sprites[7];
+        AltitudeIndSpr   = &sprites[8];
+        ballSpr          = &sprites[9];
+        displaySpr       = &sprites[10];
 
         AttitudeIndSpr->createSprite(400, 400);
         AttitudeIndSpr->setSwapBytes(false);
@@ -330,31 +336,63 @@ namespace StandbyAttitudeMonitor
     void drawSpeedIndicator()
     {
         displaySpr->fillRect(0, 0, 120, 320, BACKGROUND_COLOR);
+#ifdef USE_SPEED_SPRITE
         displaySpr->pushImage(21, 137, speed_indicator_box_2_width, speed_indicator_box_2_height, speed_indicator_box_2);
+#else
         drawSpeedIndicatorLines();
+        displaySpr->drawRect(21, 139, 73, 46, TFT_WHITE);
+        displaySpr->drawRect(22, 140, 71, 44, TFT_WHITE);
+        displaySpr->drawRect(23, 141, 69, 42, TFT_WHITE);
+        displaySpr->fillRect(24, 142, 67, 40, BACKGROUND_COLOR);
+        displaySpr->fillTriangle(10, 162, 17, 169, 17, 155, TFT_WHITE);
         displaySpr->setTextColor(TFT_WHITE, BACKGROUND_COLOR, true);
+        displaySpr->setTextDatum(MR_DATUM);
+        displaySpr->loadFont(digitsXS);     // Check for better fitting Font!!
+        displaySpr->drawString("KTS", 94, 197);
+#endif
         displaySpr->setTextDatum(ML_DATUM);
         // displaySpr->setFreeFont(FSSB12);
         displaySpr->loadFont(digitsL);
-        displaySpr->drawString(String((int)round(airSpeed)), 21 + 13, 137 + speed_indicator_box_2_height / 2 - 6);
+#ifdef USE_SPEED_SPRITE
+        displaySpr->drawString(String((int)round(airSpeed)), 34, 139 + speed_indicator_box_2_height / 2 - 6);
+#else
+        displaySpr->drawString(String((int)round(airSpeed)), 34, 164);
+#endif
 
+#ifdef USE_SPEED_SPRITE
         displaySpr->pushImage(12, 267, heading_box_width, heading_box_height, heading_box);
+#else
+        displaySpr->drawRect(21, 282, 60, 36, TFT_WHITE);
+        displaySpr->drawRect(22, 283, 58, 34, TFT_WHITE);
+        displaySpr->drawRect(23, 284, 56, 32, TFT_WHITE);
+        displaySpr->fillRect(24, 285, 54, 30, BACKGROUND_COLOR);
+        displaySpr->setTextColor(TFT_WHITE, BACKGROUND_COLOR, true);
+        displaySpr->setTextDatum(MC_DATUM);
+        displaySpr->loadFont(digitsXS);     // Check for better fitting Font!!
+        displaySpr->drawString("HDG", 55, 272);
+#endif
+        // displaySpr->setFreeFont(FSSB12);
+        displaySpr->loadFont(digitsL);
         displaySpr->setTextColor(TFT_GREEN, BACKGROUND_COLOR, true);
         displaySpr->setTextDatum(MC_DATUM);
         // displaySpr->setFreeFont(FSSB12);
         displaySpr->loadFont(digitsM);
+#ifdef USE_SPEED_SPRITE
         displaySpr->drawString(String((int)round(heading)), 12 + heading_box_width / 2, 267 + heading_box_height / 2 + 4);
+#else
+        displaySpr->drawString(String((int)round(heading)), 46, 302);
+#endif
     }
 
     void drawSpeedIndicatorLines()
     {
-        int yPosShortLines[8];
-        int yPosLongLines[8];
-        int speedValues[8];
-        int i;
-
-        int minSpeed; // minimum spped in range
-        int maxSpeed; // maximum spped in range
+        int      yPosShortLines[8];
+        int      yPosLongLines[8];
+        int      speedValues[8];
+        int      i;
+        int      minSpeed; // minimum spped in range
+        int      maxSpeed; // maximum spped in range
+        uint16_t instrumentX0 = 5;
 
         // minSpeed = round(airSpeed - 40.0);
         minSpeed = airSpeed - 40.0;
@@ -370,12 +408,11 @@ namespace StandbyAttitudeMonitor
         for (i = round(minSpeed); i <= round(maxSpeed); i++) {
             if ((i % 10) == 0) // found our first long line
             {
-                // yPosLongLines[0] = round(scaleValue(i, minSpeed, maxSpeed, 320, 0));
                 yPosLongLines[0] = scaleValue(i, minSpeed, maxSpeed, 320, 0);
                 speedValues[0]   = i;
-                displaySpr->drawWideLine(15, yPosLongLines[0] + 2, 28, yPosLongLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                displaySpr->drawWideLine(instrumentX0, yPosLongLines[0] + 2, 28, yPosLongLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
                 if (speedValues[0] > 0)
-                    displaySpr->drawString(String(speedValues[0]), 30, yPosLongLines[0] + 2);
+                    displaySpr->drawString(String(speedValues[0]), instrumentX0 + 25, yPosLongLines[0] + 2);
                 break;
                 // tft->setTextColor(TFT_GREEN);
                 // tft->drawString(String(i), 50, 20, 4);
@@ -386,10 +423,10 @@ namespace StandbyAttitudeMonitor
         for (i = 1; i < 8; i++) {
             // yPosLongLines[i] = round(scaleValue(speedValues[0] + (i * 10), minSpeed, maxSpeed, 320, 0));
             yPosLongLines[i] = scaleValue(speedValues[0] + (i * 10), minSpeed, maxSpeed, 320, 0);
-            displaySpr->drawWideLine(15, yPosLongLines[i] + 2, 28, yPosLongLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            displaySpr->drawWideLine(instrumentX0, yPosLongLines[i] + 2, 28, yPosLongLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
             speedValues[i] = speedValues[0] + (i * 10);
             if (speedValues[i] > 0)
-                displaySpr->drawString(String(speedValues[i]), 30, yPosLongLines[i] + 2);
+                displaySpr->drawString(String(speedValues[i]), instrumentX0 + 25, yPosLongLines[i] + 2);
         }
 
         // find the first airspeed value that has as "5" to draw short lines
@@ -399,7 +436,7 @@ namespace StandbyAttitudeMonitor
                 // yPosShortLines[0] = round(scaleValue(i, minSpeed, maxSpeed, 320, 0));
                 yPosShortLines[0] = scaleValue(i, minSpeed, maxSpeed, 320, 0);
                 speedValues[0]    = i;
-                displaySpr->drawWideLine(15, yPosShortLines[0] + 2, 23, yPosShortLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                displaySpr->drawWideLine(instrumentX0, yPosShortLines[0] + 2, 23, yPosShortLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
                 // tft->setTextColor(TFT_GREEN);
                 // tft->drawString(String(i), 0, 20, 4);
                 break;
@@ -411,7 +448,7 @@ namespace StandbyAttitudeMonitor
             // yPosShortLines[i] = round(scaleValue(speedValues[0] + (i * 10), minSpeed, maxSpeed, 320, 0));
             yPosShortLines[i] = scaleValue(speedValues[0] + (i * 10), minSpeed, maxSpeed, 320, 0);
             speedValues[i]    = speedValues[0] + (i * 10);
-            displaySpr->drawWideLine(15, yPosShortLines[i] + 2, 23, yPosShortLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            displaySpr->drawWideLine(instrumentX0, yPosShortLines[i] + 2, 23, yPosShortLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
         }
     }
 
@@ -421,6 +458,8 @@ namespace StandbyAttitudeMonitor
 
     void drawAltitudeIndicator()
     {
+#ifdef USE_ALTITUDE_SPRITE
+#endif
         displaySpr->fillRect(360, 0, 120, 320, BACKGROUND_COLOR);
         displaySpr->pushImage(362, 140, altitude_indicator_box_2_width, altitude_indicator_box_2_height, altitude_indicator_box_2);
         drawAltitudeIndicatorLines();
