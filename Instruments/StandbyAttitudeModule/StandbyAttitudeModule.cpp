@@ -45,8 +45,6 @@ namespace StandbyAttitudeMonitor
     TFT_eSprite *AltitudeIndSpr;    // Sprite to hold the altitude indicator
     TFT_eSprite *headingBoxSpr;     // Sprite to hold heading Box
     TFT_eSprite *speedIndBoxSpr;    // Sprite to hold speed indicator box
-    TFT_eSprite *altIndBoxSpr;      // Sprite to hold altitude indicator box
-    TFT_eSprite *baroBoxSpr;        // Sprite to holdt the Baro Box
     TFT_eSprite *displaySpr;        // Sprite for complete display
     // Pointers to start of Sprites in RAM (these are then "image" pointers)
     uint16_t *displaySprPtr;
@@ -62,7 +60,6 @@ namespace StandbyAttitudeMonitor
     void  drawSpeedIndicatorLines();
     void  drawSpeedIndicatorValues();
     void  drawAltitudeIndicatorLines();
-    void  drawAltitudeIndicatorValues();
     void  setAirSpeed(float value);
     void  setPitch(float value);
     void  setRoll(float value);
@@ -80,12 +77,12 @@ namespace StandbyAttitudeMonitor
     float    newRoll                   = 0;
     float    pitchPosition             = 0;
     float    newPitch                  = 0;
-    float    slipAngle                 = 0;    // slip angle value from sim
-    float    airSpeed                  = 0;    // Air speed value from the sim
-    double   altitude                  = 0;    // Altitude Value from the simulator
-    float    heading                   = 0;    // heading value from sim
-    float    baro                      = 0;    // baro value from sim
-    float    instrumentBrightnessRatio = 0.75; // baro value from sim
+    float    slipAngle                 = 0;     // slip angle value from sim
+    float    airSpeed                  = 0;     // Air speed value from the sim
+    double   altitude                  = 0;     // Altitude Value from the simulator
+    float    heading                   = 0;     // heading value from sim
+    float    baro                      = 29.92; // baro value from sim
+    float    instrumentBrightnessRatio = 0.75;  // baro value from sim
     float    instrumentBrightness      = 192;
     bool     powerSaveFlag             = false;
     int      screenRotation            = 3;
@@ -121,17 +118,15 @@ namespace StandbyAttitudeMonitor
         chevronDownSpr    = &sprites[7];
         SpeedIndicatorSpr = &sprites[8];
         AltitudeIndSpr    = &sprites[9];
-        altIndBoxSpr      = &sprites[10];
-        speedIndBoxSpr    = &sprites[11];
-        headingBoxSpr     = &sprites[12];
-        baroBoxSpr        = &sprites[13];
-        ballSpr           = &sprites[14];
-        displaySpr        = &sprites[15];
+        speedIndBoxSpr    = &sprites[10];
+        headingBoxSpr     = &sprites[11];
+        ballSpr           = &sprites[12];
+        displaySpr        = &sprites[13];
 
         AttitudeIndSpr->createSprite(400, 400);
         AttitudeIndSpr->setSwapBytes(false);
         AttitudeIndSpr->fillSprite(TFT_BLACK);
-        AttitudeIndSpr->setPivot(200, 200);
+        AttitudeIndSpr->setPivot(240, 160);
 
         pitchScaleSpr->createSprite(123, 148);
         pitchScaleSpr->setSwapBytes(true);
@@ -176,14 +171,6 @@ namespace StandbyAttitudeMonitor
         AltitudeIndSpr->setSwapBytes(false);
         AltitudeIndSpr->fillSprite(BACKGROUND_COLOR);
 
-        altIndBoxSpr->createSprite(altitude_indicator_box_2_width, altitude_indicator_box_2_height);
-        altIndBoxSpr->setSwapBytes(true);
-        altIndBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
-
-        baroBoxSpr->createSprite(baro_box_width, baro_box_height);
-        baroBoxSpr->setSwapBytes(true);
-        baroBoxSpr->fillScreen(TFT_BLACK); // set blue background and use this for transparency later
-
         // Speed Indicator sprites
         SpeedIndicatorSpr->createSprite(120, 320);
         SpeedIndicatorSpr->setSwapBytes(false);
@@ -201,7 +188,6 @@ namespace StandbyAttitudeMonitor
         displaySprPtr = (uint16_t *)displaySpr->createSprite(480, 320);
         displaySpr->setSwapBytes(true);
         displaySpr->fillSprite(PANEL_COLOR);
-        AttitudeIndSpr->setPivot(240, 160);
 
         tft->pushImage(160, 80, 160, 160, logo);
         startLogoMillis = millis();
@@ -224,8 +210,6 @@ namespace StandbyAttitudeMonitor
         AltitudeIndSpr->deleteSprite();
         headingBoxSpr->deleteSprite();
         speedIndBoxSpr->deleteSprite();
-        altIndBoxSpr->deleteSprite();
-        baroBoxSpr->deleteSprite();
         displaySpr->deleteSprite();
     }
 
@@ -470,23 +454,21 @@ namespace StandbyAttitudeMonitor
 
     void drawAltitudeIndicator()
     {
+        displaySpr->fillRect(360, 0, 120, 320, BACKGROUND_COLOR);
+        displaySpr->pushImage(362, 140, altitude_indicator_box_2_width, altitude_indicator_box_2_height, altitude_indicator_box_2);
         drawAltitudeIndicatorLines();
-        altIndBoxSpr->pushImage(0, 0, altitude_indicator_box_2_width, altitude_indicator_box_2_height, altitude_indicator_box_2);
-        drawAltitudeIndicatorValues();
-        altIndBoxSpr->pushToSprite(AltitudeIndSpr, 2, 140, TFT_BLACK);
+        displaySpr->setTextColor(TFT_WHITE, BACKGROUND_COLOR, true);
+        displaySpr->setTextDatum(MR_DATUM);
+        // displaySpr->setFreeFont(FSSB12);
+        displaySpr->loadFont(digitsL);
+        displaySpr->drawString(String((int)round(altitude)), 360 + 88, 140 + altitude_indicator_box_2_height / 2 - 9);
 
-        baroBoxSpr->pushImage(0, 0, baro_box_width, baro_box_height, baro_box);
-        baroBoxSpr->setTextColor(TFT_GREEN);
-        baroBoxSpr->setTextDatum(MC_DATUM);
-        // baroBoxSpr->setFreeFont(FSSB12);
-        baroBoxSpr->loadFont(digitsS);
-        baroBoxSpr->drawString(String(baro), baro_box_width / 2, baro_box_height / 2 + 10);
-        baroBoxSpr->pushToSprite(AltitudeIndSpr, 34, 268, TFT_BLACK);
-        baroBoxSpr->fillSprite(TFT_BLACK);
-
-        // Better would be that the sprites above directly copied to displaySpr sprite!!
-        AltitudeIndSpr->pushToSprite(displaySpr, 360, 0);
-        AltitudeIndSpr->fillSprite(BACKGROUND_COLOR);
+        displaySpr->pushImage(360 + 34, 268, baro_box_width, baro_box_height, baro_box);
+        displaySpr->setTextColor(TFT_GREEN, BACKGROUND_COLOR, true);
+        displaySpr->setTextDatum(MC_DATUM);
+        // displaySpr->setFreeFont(FSSB12);
+        displaySpr->loadFont(digitsS);
+        displaySpr->drawString(String(baro), 360 + 34 + baro_box_width / 2, 268 + baro_box_height / 2 + 10);
     }
 
     void drawAltitudeIndicatorLines()
@@ -508,10 +490,9 @@ namespace StandbyAttitudeMonitor
         // maxAltitude = round(altitude + 250.0);
         maxAltitude = altitude + 250.0;
 
-        AltitudeIndSpr->loadFont(digitsS);
-        // AltitudeIndSpr->setFreeFont(digitsM);
-        AltitudeIndSpr->setTextColor(TFT_WHITE);
-        AltitudeIndSpr->setTextDatum(MR_DATUM);
+        displaySpr->loadFont(digitsS);
+        displaySpr->setTextColor(TFT_WHITE, BACKGROUND_COLOR);
+        displaySpr->setTextDatum(MR_DATUM);
 
         // find the first altitude value that has a "100" to draw long lines
         for (i = round(minAltitude); i <= round(maxAltitude); i++) {
@@ -520,8 +501,8 @@ namespace StandbyAttitudeMonitor
                 // yPosLongLines[0] = round(scaleValue(i, minAltitude, maxAltitude, 320, 0));
                 yPosLongLines[0]  = scaleValue(i, minAltitude, maxAltitude, 320, 0);
                 altitudeValues[0] = i;
-                AltitudeIndSpr->drawWideLine(91, yPosLongLines[0] + 2, 109, yPosLongLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
-                AltitudeIndSpr->drawString(String(altitudeValues[0]), 89, yPosLongLines[0] + 2);
+                displaySpr->drawWideLine(360 + 91, yPosLongLines[0] + 2, 360 + 109, yPosLongLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                displaySpr->drawString(String(altitudeValues[0]), 360 + 89, yPosLongLines[0] + 2);
                 break;
                 // tft->setTextColor(TFT_GREEN);
                 // tft->drawString(String(i), 0, 210, 4);
@@ -532,9 +513,9 @@ namespace StandbyAttitudeMonitor
         for (i = 1; i < 5; i++) {
             // yPosLongLines[i] = round(scaleValue(altitudeValues[0] + (i * 100), minAltitude, maxAltitude, 320, 0));
             yPosLongLines[i] = scaleValue(altitudeValues[0] + (i * 100), minAltitude, maxAltitude, 320, 0);
-            AltitudeIndSpr->drawWideLine(91, yPosLongLines[i] + 2, 109, yPosLongLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            displaySpr->drawWideLine(360 + 91, yPosLongLines[i] + 2, 360 + 109, yPosLongLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
             altitudeValues[i] = altitudeValues[0] + (i * 100);
-            AltitudeIndSpr->drawString(String(altitudeValues[i]), 89, yPosLongLines[i] + 2);
+            displaySpr->drawString(String(altitudeValues[i]), 360 + 89, yPosLongLines[i] + 2);
         }
 
         // find the first altitude value that has a "50" to draw medium lines
@@ -544,7 +525,7 @@ namespace StandbyAttitudeMonitor
                 // yPosMediumLines[0] = round(scaleValue(i, minAltitude, maxAltitude, 320, 0));
                 yPosMediumLines[0] = scaleValue(i, minAltitude, maxAltitude, 320, 0);
                 altitudeValues[0]  = i;
-                AltitudeIndSpr->drawWideLine(97, yPosMediumLines[0] + 2, 109, yPosMediumLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                displaySpr->drawWideLine(360 + 97, yPosMediumLines[0] + 2, 360 + 109, yPosMediumLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
                 // AltitudeIndSpr->drawString(String(altitudeValues[0]), 50, yPosMediumLines[0] + 2);
                 break;
             }
@@ -556,7 +537,7 @@ namespace StandbyAttitudeMonitor
             // yPosMediumLines[i] = round(scaleValue(altitudeValues[0] + (i * 100), minAltitude, maxAltitude, 320, 0));
             yPosMediumLines[i] = scaleValue(altitudeValues[0] + (i * 100), minAltitude, maxAltitude, 320, 0);
             altitudeValues[i]  = altitudeValues[0] + (i * 100);
-            AltitudeIndSpr->drawWideLine(97, yPosMediumLines[i] + 2, 109, yPosMediumLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            displaySpr->drawWideLine(360 + 97, yPosMediumLines[i] + 2, 360 + 109, yPosMediumLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
         }
 
         // find the first altitude value that has a "25" to draw short lines
@@ -566,7 +547,8 @@ namespace StandbyAttitudeMonitor
                 // yPosShortLines[0] = round(scaleValue(i, minAltitude, maxAltitude, 320, 0));
                 yPosShortLines[0] = scaleValue(i, minAltitude, maxAltitude, 320, 0);
                 altitudeValues[0] = i;
-                AltitudeIndSpr->drawWideLine(102, yPosShortLines[0] + 2, 109, yPosShortLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                // AltitudeIndSpr->drawWideLine(102, yPosShortLines[0] + 2, 109, yPosShortLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
+                displaySpr->drawWideLine(360 + 102, yPosShortLines[0] + 2, 360 + 109, yPosShortLines[0] + 2, 3, TFT_WHITE, TFT_BLACK);
                 break;
             }
         }
@@ -577,18 +559,9 @@ namespace StandbyAttitudeMonitor
             // yPosShortLines[i] = round(scaleValue(altitudeValues[0] + (i * 50), minAltitude, maxAltitude, 320, 0));
             yPosShortLines[i] = scaleValue(altitudeValues[0] + (i * 50), minAltitude, maxAltitude, 320, 0);
             altitudeValues[i] = altitudeValues[0] + (i * 50);
-            AltitudeIndSpr->drawWideLine(102, yPosShortLines[i] + 2, 109, yPosShortLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            // AltitudeIndSpr->drawWideLine(102, yPosShortLines[i] + 2, 109, yPosShortLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
+            AltitudeIndSpr->drawWideLine(360 + 102, yPosShortLines[i] + 2, 360 + 109, yPosShortLines[i] + 2, 3, TFT_WHITE, TFT_BLACK);
         }
-    }
-
-    void drawAltitudeIndicatorValues()
-    {
-        altIndBoxSpr->setTextColor(TFT_WHITE);
-        altIndBoxSpr->setTextColor(TFT_WHITE);
-        altIndBoxSpr->setTextDatum(MR_DATUM);
-        // altIndBoxSpr->setFreeFont(FSSB12);
-        altIndBoxSpr->loadFont(digitsL);
-        altIndBoxSpr->drawString(String((int)round(altitude)), 88, altitude_indicator_box_2_height / 2 - 9);
     }
 
     /* **********************************************************************************
@@ -670,7 +643,7 @@ namespace StandbyAttitudeMonitor
         // Draw the roll scale sprite
         rollScaleSpr->pushImage(0, 0, rollScaleWidth, rollScaleHeight, roll_scale);
         rollScaleSpr->pushToSprite(AttitudeIndSpr, 17 + 80, 42 + 40, TFT_BLACK);
-        
+
         slipIndicatorSpr->pushImage(0, 0, slipIndicatorWidth, slipIndicatorHeight, slip_indicator);
         // Draw the the ball. The degree of is -8 to 8 degrees according to the sim values by trial and error
         drawBall();
