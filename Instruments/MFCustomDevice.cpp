@@ -180,19 +180,33 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
         cmdMessenger.sendCmd(kStatus, F("Custom Device is not supported by this firmware version"));
     }
     if (_customType == STANDBY_ATTITUDE_MONITOR) {
+#ifdef USE_STANDBY_ATTITUDE_MODULE
         StandbyAttitudeMonitor::init(tft, spr, _pin1);
+#endif
     } else if (_customType == AIRSPEED_INDICATOR) {
+#ifdef USE_AIRSPEED_INDICATOR
         AirspeedIndicator::init(tft, spr, _pin1);
+#endif
     } else if (_customType == ATTITUDE_INDICATOR) {
+#ifdef USE_ATTITUDE_INDICATOR
         AttitudeIndicator::init(tft, spr, _pin1);
+#endif
     } else if (_customType == TURN_COORDINATOR) {
+#ifdef USE_TURNCOORDINATOR
         TurnCoordinator::init(tft, spr, _pin1);
+#endif
     } else if (_customType == ALTIMETER) {
+#ifdef USE_ALTIMETER
         Altimeter::init(tft, spr, _pin1);
+#endif
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
+#ifdef USE_VERTICAL_SPEED_INDICATOR
         VerticalSpeedIndicator::init(tft, spr, _pin1);
+#endif
     } else if (_customType == HEADING_INDICATOR) {
+#ifdef USE_HEADING_INDICATOR
         HeadingIndicator::init(tft, spr, _pin1);
+#endif
     }
 
     _initialized = true;
