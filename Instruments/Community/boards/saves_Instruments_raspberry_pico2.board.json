@@ -20,12 +20,12 @@
     "Info": {
       "CanInstallFirmware": true,
       "CanResetBoard": true,
-      "FirmwareBaseName": "instruments_raspberrypico",
+      "FirmwareBaseName": "instruments_all_pico2",
       "FirmwareExtension": "uf2",
       "FriendlyName": "Saves Instruments Pico2",
       "LatestFirmwareVersion": "0.9.0",
       "MobiFlightType": "Saves Instruments Pico2",
-      "ResetFirmwareFile": "reset.tbd.uf2",
+      "ResetFirmwareFile": "reset.arduino_raspberrypico2_1_0_2.uf2",
       "CustomDeviceTypes": [
         "StandbyAttitudeModule",
         "Airspeed_Indicator",
