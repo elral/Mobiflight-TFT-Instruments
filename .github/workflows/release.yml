@@ -45,9 +45,7 @@ jobs:
       - name: Run PlatformIO
         env:
           VERSION: ${{ steps.get_version.outputs.version-without-v }}
-        run: |
-          cp "./esp32-s3-devkitc-1-n16r8v.json" "~/.platformio/platforms/espressif32/boards/"
-          pio run
+        run: pio run
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3
