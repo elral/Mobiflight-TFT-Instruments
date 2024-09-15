@@ -87,7 +87,7 @@ namespace Altimeter
         mainSpr->setPivot(160, 160);
 
         altimeterSpr->createSprite(320, 320);
-        altimeterSpr->setSwapBytes(false);
+        altimeterSpr->setSwapBytes(true);
         altimeterSpr->fillSprite(TFT_BLACK);
         altimeterSpr->pushImage(0, 0, 320, 320, altimeter_main);
         altimeterSpr->setPivot(160, 160);
@@ -185,11 +185,8 @@ namespace Altimeter
     {
         mainSpr->fillSprite(TFT_BLACK);
 
-        altimeterSpr->pushImage(0, 0, 320, 320, altimeter_main);
-
         thousand = (int)(altitude) % 10000;
         hundred  = (int)(altitude) % 1000;
-
         angleTenThousand = scaleValue(altitude, 0, 100000, 0, 360);
         angleThousand    = scaleValue(thousand, 0, 10000, 0, 360);
         angleHundred     = scaleValue(hundred, 0, 1000, 0, 360);
@@ -199,16 +196,14 @@ namespace Altimeter
         } else { // Baro scale in inHg
             angleBaro = angleBaro = scaleValue(baro, 28.6, 31.1, -120, 112);
         }
-
         baroSpr->pushRotated(mainSpr, -angleBaro, TFT_BLACK);
-        altimeterSpr->setSwapBytes(true);
-        altimeterSpr->pushImage(0, 0, 320, 320, altimeter_main);
-        needle10000Spr->pushRotated(altimeterSpr, angleTenThousand, TFT_BLACK);
-        needle1000Spr->pushRotated(altimeterSpr, angleThousand, TFT_BLACK);
-        needle100Spr->pushRotated(altimeterSpr, angleHundred, TFT_BLACK);
-        altimeterSpr->pushToSprite(mainSpr, 0, 0, TFT_BLACK);
 
-        // mainSpr->pushSprite(80, 0);
+        altimeterSpr->pushToSprite(mainSpr,0,0,TFT_BLACK);
+        
+        needle10000Spr->pushRotated(mainSpr, angleTenThousand, TFT_BLACK);
+        needle1000Spr->pushRotated(mainSpr, angleThousand, TFT_BLACK);
+        needle100Spr->pushRotated(mainSpr, angleHundred, TFT_BLACK);
+
         tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
     }
 
