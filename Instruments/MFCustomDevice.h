@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
+#include <TFT_eSPI.h>
+
 #ifdef USE_STANDBY_ATTITUDE_MODULE
 #include "StandbyAttitudeModule/StandbyAttitudeModule.h"
 #endif

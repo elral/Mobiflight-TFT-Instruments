@@ -221,19 +221,33 @@ void MFCustomDevice::detach()
 {
     _initialized = false;
     if (_customType == STANDBY_ATTITUDE_MONITOR) {
+#ifdef USE_STANDBY_ATTITUDE_MODULE
         StandbyAttitudeMonitor::stop();
+#endif
     } else if (_customType == AIRSPEED_INDICATOR) {
+#ifdef USE_AIRSPEED_INDICATOR
         AirspeedIndicator::stop();
+#endif
     } else if (_customType == ATTITUDE_INDICATOR) {
+#ifdef USE_ATTITUDE_INDICATOR
         AttitudeIndicator::stop();
+#endif
     } else if (_customType == TURN_COORDINATOR) {
+#ifdef USE_TURNCOORDINATOR
         TurnCoordinator::stop();
+#endif
     } else if (_customType == ALTIMETER) {
+#ifdef USE_ALTIMETER
         Altimeter::stop();
+#endif
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
+#ifdef USE_VERTICAL_SPEED_INDICATOR
         VerticalSpeedIndicator::stop();
+#endif
     } else if (_customType == HEADING_INDICATOR) {
+#ifdef USE_HEADING_INDICATOR
         HeadingIndicator::stop();
+#endif
     }
 }
 
@@ -254,19 +268,33 @@ void MFCustomDevice::update()
         Do something if required
     ********************************************************************************** */
     if (_customType == STANDBY_ATTITUDE_MONITOR) {
+#ifdef USE_STANDBY_ATTITUDE_MODULE
         StandbyAttitudeMonitor::update();
+#endif
     } else if (_customType == AIRSPEED_INDICATOR) {
+#ifdef USE_AIRSPEED_INDICATOR
         AirspeedIndicator::update();
+#endif
     } else if (_customType == ATTITUDE_INDICATOR) {
+#ifdef USE_ATTITUDE_INDICATOR
         AttitudeIndicator::update();
+#endif
     } else if (_customType == TURN_COORDINATOR) {
+#ifdef USE_TURNCOORDINATOR
         TurnCoordinator::update();
+#endif
     } else if (_customType == ALTIMETER) {
+#ifdef USE_ALTIMETER
         Altimeter::update();
+#endif
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
+#ifdef USE_VERTICAL_SPEED_INDICATOR
         VerticalSpeedIndicator::update();
+#endif
     } else if (_customType == HEADING_INDICATOR) {
+#ifdef USE_HEADING_INDICATOR
         HeadingIndicator::update();
+#endif
     }
 }
 
@@ -280,18 +308,32 @@ void MFCustomDevice::set(int16_t messageID, char *setPoint)
     if (!_initialized) return;
 
     if (_customType == STANDBY_ATTITUDE_MONITOR) {
+#ifdef USE_STANDBY_ATTITUDE_MODULE
         StandbyAttitudeMonitor::set(messageID, setPoint);
+#endif
     } else if (_customType == AIRSPEED_INDICATOR) {
+#ifdef USE_AIRSPEED_INDICATOR
         AirspeedIndicator::set(messageID, setPoint);
+#endif
     } else if (_customType == ATTITUDE_INDICATOR) {
+#ifdef USE_ATTITUDE_INDICATOR
         AttitudeIndicator::set(messageID, setPoint);
+#endif
     } else if (_customType == TURN_COORDINATOR) {
+#ifdef USE_TURNCOORDINATOR
         TurnCoordinator::set(messageID, setPoint);
+#endif
     } else if (_customType == ALTIMETER) {
+#ifdef USE_ALTIMETER
         Altimeter::set(messageID, setPoint);
+#endif
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
+#ifdef USE_VERTICAL_SPEED_INDICATOR
         VerticalSpeedIndicator::set(messageID, setPoint);
+#endif
     } else if (_customType == HEADING_INDICATOR) {
+#ifdef USE_HEADING_INDICATOR
         HeadingIndicator::set(messageID, setPoint);
+#endif
     }
 }
