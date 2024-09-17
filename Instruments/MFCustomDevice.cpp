@@ -28,12 +28,14 @@ extern MFEEPROM MFeeprom;
 ********************************************************************************** */
 #define MEMLEN_STRING_BUFFER 40
 
+#if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
 TFT_eSPI *tft;
 // Sprites for Instruments, max. number which can be used for an instrument
 TFT_eSprite spr[17] = {TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
                        TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
                        TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
                        TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft)};
+#endif
 
 // reads a string from EEPROM or Flash at given address which is '.' terminated and saves it to the buffer
 bool MFCustomDevice::getStringFromMem(uint16_t addrMem, char *buffer, bool configFromFlash)
@@ -158,7 +160,7 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
         ********************************************************************************** */
         // In most cases you need only one of the following functions
         // depending on if the constuctor takes the variables or a separate function is required
-#if defined(ARDUINO_ARCH_RP2040)
+#if defined(ARDUINO_ARCH_RP2040) && !defined(PICO_RP2350)
         // Setting SPI clock to processor clock / 2
         // This speeds up SPI transfer for the Pico
         uint32_t freq = clock_get_hz(clk_sys);
@@ -168,7 +170,9 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
                         CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLK_SYS,
                         freq,
                         freq);
+
 #endif
+#if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
         tft = new (allocateMemory(sizeof(TFT_eSPI))) TFT_eSPI();
         tft->init();
         tft->initDMA();
@@ -176,6 +180,7 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
         tft->fillScreen(TFT_BLACK);
         millis_end = millis();
         tft->setRotation(0);
+#endif
     } else {
         cmdMessenger.sendCmd(kStatus, F("Custom Device is not supported by this firmware version"));
     }

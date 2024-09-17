@@ -1,7 +1,9 @@
 #pragma once
 
 #include <Arduino.h>
+#if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
 #include <TFT_eSPI.h>
+#endif
 
 #ifdef USE_STANDBY_ATTITUDE_MODULE
 #include "StandbyAttitudeModule/StandbyAttitudeModule.h"
