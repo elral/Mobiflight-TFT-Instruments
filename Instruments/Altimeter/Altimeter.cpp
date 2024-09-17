@@ -204,7 +204,12 @@ namespace Altimeter
         needle1000Spr->pushRotated(mainSpr, angleThousand, TFT_BLACK);
         needle100Spr->pushRotated(mainSpr, angleHundred, TFT_BLACK);
 
+// for now Bodmers lib does not work with DMA for Pico2(B), just for testing...
+#if defined(PICO_RP2350)
+        tft->pushImage(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
+#else
         tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
+#endif
     }
 
     float scaleValue(float x, float in_min, float in_max, float out_min, float out_max)
