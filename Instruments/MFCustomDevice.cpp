@@ -114,11 +114,13 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
         /* **********************************************************************************
             Check if the device fits into the device buffer
         ********************************************************************************** */
+#if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
         if (!FitInMemory(sizeof(TFT_eSPI))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
             return;
         }
+#endif
         /* **********************************************************************************************
             Read the pins from the EEPROM or Flash, copy them into a buffer
             If you have set '"isI2C": true' in the device.json file, the first value is the I2C address
