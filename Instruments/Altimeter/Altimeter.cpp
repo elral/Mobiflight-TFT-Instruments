@@ -265,7 +265,9 @@ namespace Altimeter
     {
         if (rotation >= 0 && rotation <= 3) {
             prevScreenRotation = rotation;
+#if defined(PICO_RP2350)
             tft->dmaWait();
+#endif
             tft->setRotation(rotation);
         }
 
