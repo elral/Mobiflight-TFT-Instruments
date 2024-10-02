@@ -36,14 +36,12 @@ extern MFEEPROM MFeeprom;
 ********************************************************************************** */
 #define MEMLEN_STRING_BUFFER 40
 
-#if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
 TFT_eSPI *tft;
 // Sprites for Instruments, max. number which can be used for an instrument
 TFT_eSprite spr[17] = {TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
                        TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
                        TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
                        TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft)};
-#endif
 
 // reads a string from EEPROM or Flash at given address which is '.' terminated and saves it to the buffer
 bool MFCustomDevice::getStringFromMem(uint16_t addrMem, char *buffer, bool configFromFlash)
@@ -126,13 +124,12 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
         /* **********************************************************************************
             Check if the device fits into the device buffer
         ********************************************************************************** */
-#if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
         if (!FitInMemory(sizeof(TFT_eSPI))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
             return;
         }
-#endif
+
         /* **********************************************************************************************
             Read the pins from the EEPROM or Flash, copy them into a buffer
             If you have set '"isI2C": true' in the device.json file, the first value is the I2C address
@@ -186,44 +183,28 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
                         freq);
 
 #endif
-#if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
         tft = new (allocateMemory(sizeof(TFT_eSPI))) TFT_eSPI();
         tft->init();
     //    tft->initDMA();
         tft->fillScreen(TFT_BLACK);
         tft->setRotation(0);
-#endif
     } else {
         cmdMessenger.sendCmd(kStatus, F("Custom Device is not supported by this firmware version"));
     }
     if (_customType == STANDBY_ATTITUDE_MONITOR) {
-#ifdef USE_STANDBY_ATTITUDE_MODULE
         StandbyAttitudeMonitor::init(tft, spr, _pin1);
-#endif
     } else if (_customType == AIRSPEED_INDICATOR) {
-#ifdef USE_AIRSPEED_INDICATOR
         AirspeedIndicator::init(tft, spr, _pin1);
-#endif
     } else if (_customType == ATTITUDE_INDICATOR) {
-#ifdef USE_ATTITUDE_INDICATOR
         AttitudeIndicator::init(tft, spr, _pin1);
-#endif
     } else if (_customType == TURN_COORDINATOR) {
-#ifdef USE_TURNCOORDINATOR
         TurnCoordinator::init(tft, spr, _pin1);
-#endif
     } else if (_customType == ALTIMETER) {
-#ifdef USE_ALTIMETER
         Altimeter::init(tft, spr, _pin1);
-#endif
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
-#ifdef USE_VERTICAL_SPEED_INDICATOR
         VerticalSpeedIndicator::init(tft, spr, _pin1);
-#endif
     } else if (_customType == HEADING_INDICATOR) {
-#ifdef USE_HEADING_INDICATOR
         HeadingIndicator::init(tft, spr, _pin1);
-#endif
     }
     _initialized = true;
 }
@@ -237,33 +218,19 @@ void MFCustomDevice::detach()
 {
     _initialized = false;
     if (_customType == STANDBY_ATTITUDE_MONITOR) {
-#ifdef USE_STANDBY_ATTITUDE_MODULE
         StandbyAttitudeMonitor::stop();
-#endif
     } else if (_customType == AIRSPEED_INDICATOR) {
-#ifdef USE_AIRSPEED_INDICATOR
         AirspeedIndicator::stop();
-#endif
     } else if (_customType == ATTITUDE_INDICATOR) {
-#ifdef USE_ATTITUDE_INDICATOR
         AttitudeIndicator::stop();
-#endif
     } else if (_customType == TURN_COORDINATOR) {
-#ifdef USE_TURNCOORDINATOR
         TurnCoordinator::stop();
-#endif
     } else if (_customType == ALTIMETER) {
-#ifdef USE_ALTIMETER
         Altimeter::stop();
-#endif
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
-#ifdef USE_VERTICAL_SPEED_INDICATOR
         VerticalSpeedIndicator::stop();
-#endif
     } else if (_customType == HEADING_INDICATOR) {
-#ifdef USE_HEADING_INDICATOR
         HeadingIndicator::stop();
-#endif
     }
 }
 
@@ -284,33 +251,19 @@ void MFCustomDevice::update()
         Do something if required
     ********************************************************************************** */
     if (_customType == STANDBY_ATTITUDE_MONITOR) {
-#ifdef USE_STANDBY_ATTITUDE_MODULE
         StandbyAttitudeMonitor::update();
-#endif
     } else if (_customType == AIRSPEED_INDICATOR) {
-#ifdef USE_AIRSPEED_INDICATOR
         AirspeedIndicator::update();
-#endif
     } else if (_customType == ATTITUDE_INDICATOR) {
-#ifdef USE_ATTITUDE_INDICATOR
         AttitudeIndicator::update();
-#endif
     } else if (_customType == TURN_COORDINATOR) {
-#ifdef USE_TURNCOORDINATOR
         TurnCoordinator::update();
-#endif
     } else if (_customType == ALTIMETER) {
-#ifdef USE_ALTIMETER
         Altimeter::update();
-#endif
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
-#ifdef USE_VERTICAL_SPEED_INDICATOR
         VerticalSpeedIndicator::update();
-#endif
     } else if (_customType == HEADING_INDICATOR) {
-#ifdef USE_HEADING_INDICATOR
         HeadingIndicator::update();
-#endif
     }
 }
 
@@ -324,32 +277,18 @@ void MFCustomDevice::set(int16_t messageID, char *setPoint)
     if (!_initialized) return;
 
     if (_customType == STANDBY_ATTITUDE_MONITOR) {
-#ifdef USE_STANDBY_ATTITUDE_MODULE
         StandbyAttitudeMonitor::set(messageID, setPoint);
-#endif
     } else if (_customType == AIRSPEED_INDICATOR) {
-#ifdef USE_AIRSPEED_INDICATOR
         AirspeedIndicator::set(messageID, setPoint);
-#endif
     } else if (_customType == ATTITUDE_INDICATOR) {
-#ifdef USE_ATTITUDE_INDICATOR
         AttitudeIndicator::set(messageID, setPoint);
-#endif
     } else if (_customType == TURN_COORDINATOR) {
-#ifdef USE_TURNCOORDINATOR
         TurnCoordinator::set(messageID, setPoint);
-#endif
     } else if (_customType == ALTIMETER) {
-#ifdef USE_ALTIMETER
         Altimeter::set(messageID, setPoint);
-#endif
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
-#ifdef USE_VERTICAL_SPEED_INDICATOR
         VerticalSpeedIndicator::set(messageID, setPoint);
-#endif
     } else if (_customType == HEADING_INDICATOR) {
-#ifdef USE_HEADING_INDICATOR
         HeadingIndicator::set(messageID, setPoint);
-#endif
     }
 }

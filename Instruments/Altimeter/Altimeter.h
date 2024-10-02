@@ -1,9 +1,7 @@
 #pragma once
 
 #include "Arduino.h"
-#ifdef USE_ALTIMETER
 #include <TFT_eSPI.h>
-#endif
 
 namespace Altimeter
 {
