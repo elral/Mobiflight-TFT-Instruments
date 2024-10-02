@@ -37,14 +37,12 @@ extern MFEEPROM MFeeprom;
 #define MEMLEN_STRING_BUFFER 40
 
 #if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
-//TFT_eSPI *tft;
-TFT_eSPI tft = TFT_eSPI();
+TFT_eSPI *tft;
 // Sprites for Instruments, max. number which can be used for an instrument
-TFT_eSprite spr[17] = {TFT_eSprite(&tft), TFT_eSprite(&tft), TFT_eSprite(&tft), TFT_eSprite(&tft),
-                       TFT_eSprite(&tft), TFT_eSprite(&tft), TFT_eSprite(&tft), TFT_eSprite(&tft),
-                       TFT_eSprite(&tft), TFT_eSprite(&tft), TFT_eSprite(&tft), TFT_eSprite(&tft),
-                       TFT_eSprite(&tft), TFT_eSprite(&tft), TFT_eSprite(&tft), TFT_eSprite(&tft), TFT_eSprite(&tft)};
-TFT_eSprite sprTest = TFT_eSprite(&tft); // Sprite object
+TFT_eSprite spr[17] = {TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
+                       TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
+                       TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft),
+                       TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft), TFT_eSprite(tft)};
 #endif
 
 // reads a string from EEPROM or Flash at given address which is '.' terminated and saves it to the buffer
@@ -101,7 +99,7 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
     char    *params, *p = NULL;
     char     parameter[MEMLEN_STRING_BUFFER];
     uint8_t  _pin1;
-    uint32_t millis_start, millis_end;
+
 
     /* **********************************************************************************
         Read the Type from the EEPROM or Flash, copy it into a buffer and evaluate it
@@ -129,13 +127,11 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
             Check if the device fits into the device buffer
         ********************************************************************************** */
 #if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
-/*
         if (!FitInMemory(sizeof(TFT_eSPI))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
             return;
         }
-*/
 #endif
         /* **********************************************************************************************
             Read the pins from the EEPROM or Flash, copy them into a buffer
@@ -191,50 +187,53 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
 
 #endif
 #if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
-    //    tft = new (allocateMemory(sizeof(TFT_eSPI))) TFT_eSPI();
-        tft.init();
+        tft = new (allocateMemory(sizeof(TFT_eSPI))) TFT_eSPI();
+        tft->init();
     //    tft->initDMA();
-        tft.deInitDMA();
-        millis_start = millis();
-        tft.fillScreen(TFT_BLACK);
-        millis_end = millis();
-        tft.setRotation(0);
-        sprTest.createSprite(480, 320);
-        sprTest.deleteSprite();
+        tft->fillScreen(TFT_BLACK);
+        tft->setRotation(0);
 #endif
     } else {
         cmdMessenger.sendCmd(kStatus, F("Custom Device is not supported by this firmware version"));
     }
     if (_customType == STANDBY_ATTITUDE_MONITOR) {
 #ifdef USE_STANDBY_ATTITUDE_MODULE
-        StandbyAttitudeMonitor::init(&tft, spr, _pin1);
+        StandbyAttitudeMonitor::init(tft, spr, _pin1);
 #endif
     } else if (_customType == AIRSPEED_INDICATOR) {
 #ifdef USE_AIRSPEED_INDICATOR
-        AirspeedIndicator::init(&tft, spr, _pin1);
+        AirspeedIndicator::init(tft, spr, _pin1);
 #endif
     } else if (_customType == ATTITUDE_INDICATOR) {
 #ifdef USE_ATTITUDE_INDICATOR
-        AttitudeIndicator::init(&tft, spr, _pin1);
+        AttitudeIndicator::init(tft, spr, _pin1);
 #endif
     } else if (_customType == TURN_COORDINATOR) {
 #ifdef USE_TURNCOORDINATOR
-        TurnCoordinator::init(&tft, spr, _pin1);
+        TurnCoordinator::init(tft, spr, _pin1);
 #endif
     } else if (_customType == ALTIMETER) {
 #ifdef USE_ALTIMETER
-        Altimeter::init(&tft, spr, _pin1);
+        Altimeter::init(tft, spr, _pin1);
 #endif
     } else if (_customType == VERTICAL_SPEED_INDICATOR) {
 #ifdef USE_VERTICAL_SPEED_INDICATOR
-        VerticalSpeedIndicator::init(&tft, spr, _pin1);
+        VerticalSpeedIndicator::init(tft, spr, _pin1);
 #endif
     } else if (_customType == HEADING_INDICATOR) {
 #ifdef USE_HEADING_INDICATOR
-        HeadingIndicator::init(&tft, spr, _pin1);
+        HeadingIndicator::init(tft, spr, _pin1);
 #endif
     }
-
+Serial.println("-------------- TFT init! -----------------");
+Serial.print("PSRAM size is: ");
+Serial.println(rp2040.getPSRAMSize());
+Serial.print("Total PSRAM Heap: ");
+Serial.println(rp2040.getTotalPSRAMHeap());
+Serial.print("Used PSRAM Heap: ");
+Serial.println(rp2040.getUsedPSRAMHeap());
+Serial.print("Free PSRAM Heap: ");
+Serial.println(rp2040.getFreePSRAMHeap());
     _initialized = true;
 }
 
