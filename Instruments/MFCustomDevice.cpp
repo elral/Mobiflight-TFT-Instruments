@@ -225,15 +225,6 @@ void MFCustomDevice::attach(uint16_t adrPin, uint16_t adrType, uint16_t adrConfi
         HeadingIndicator::init(tft, spr, _pin1);
 #endif
     }
-Serial.println("-------------- TFT init! -----------------");
-Serial.print("PSRAM size is: ");
-Serial.println(rp2040.getPSRAMSize());
-Serial.print("Total PSRAM Heap: ");
-Serial.println(rp2040.getTotalPSRAMHeap());
-Serial.print("Used PSRAM Heap: ");
-Serial.println(rp2040.getUsedPSRAMHeap());
-Serial.print("Free PSRAM Heap: ");
-Serial.println(rp2040.getFreePSRAMHeap());
     _initialized = true;
 }
 
