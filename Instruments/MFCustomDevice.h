@@ -1,31 +1,15 @@
 #pragma once
 
 #include <Arduino.h>
-#if defined(USE_STANDBY_ATTITUDE_MODULE) || defined(USE_AIRSPEED_INDICATOR) || defined(USE_ATTITUDE_INDICATOR) || defined(USE_TURNCOORDINATOR) || defined(USE_ALTIMETER) || defined(USE_VERTICAL_SPEED_INDICATOR) ||defined(USE_HEADING_INDICATOR)
 #include <TFT_eSPI.h>
-#endif
 
-#ifdef USE_STANDBY_ATTITUDE_MODULE
 #include "StandbyAttitudeModule/StandbyAttitudeModule.h"
-#endif
-#ifdef USE_AIRSPEED_INDICATOR
 #include "AirspeedIndicator/Airspeed_Indicator.h"
-#endif
-#ifdef USE_ATTITUDE_INDICATOR
 #include "AttitudeIndicator/Attitude_Indicator.h"
-#endif
-#ifdef USE_TURNCOORDINATOR
 #include "TurnCoordinator/Turn_Coordinator.h"
-#endif
-#ifdef USE_ALTIMETER
 #include "Altimeter/Altimeter.h"
-#endif
-#ifdef USE_VERTICAL_SPEED_INDICATOR
 #include "VerticalSpeedIndicator/Vertical_Speed_Indicator.h"
-#endif
-#ifdef USE_HEADING_INDICATOR
 #include "HeadingIndicator/Heading_Indicator.h"
-#endif
 
 #define GFXFF 1
 #define GLCD  0

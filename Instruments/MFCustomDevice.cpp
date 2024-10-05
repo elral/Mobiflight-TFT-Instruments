@@ -1,22 +1,14 @@
 #include "MFCustomDevice.h"
 #include "commandmessenger.h"
 #include "allocateMem.h"
-#ifdef USE_EEPROM_CLASS
 #include "MFEEPROM.h"
-#endif
-#include <EEPROM.h>
 #ifdef HAS_CONFIG_IN_FLASH
 #include "MFCustomDevicesConfig.h"
 #else
 const char CustomDeviceConfig[] PROGMEM = {};
 #endif
 
-#ifdef USE_EEPROM_CLASS
 extern MFEEPROM MFeeprom;
-#define EEPROM_READ_BYTE(x) MFeeprom.read_byte(x)
-#else
-#define EEPROM_READ_BYTE(x) EEPROM.read(x)
-#endif
 
 /* **********************************************************************************
     The custom device pins, type and configuration is stored in the EEPROM
@@ -48,18 +40,14 @@ bool MFCustomDevice::getStringFromMem(uint16_t addrMem, char *buffer, bool confi
 {
     char     temp    = 0;
     uint8_t  counter = 0;
-#ifdef USE_EEPROM_CLASS
     uint16_t length  = MFeeprom.get_length();
-#else
-    uint16_t length  = EEPROM.length();
-#endif
     do {
         if (configFromFlash) {
             temp = pgm_read_byte_near(CustomDeviceConfig + addrMem++);
             if (addrMem > sizeof(CustomDeviceConfig))
                 return false;
         } else {
-            temp = EEPROM_READ_BYTE(addrMem++);
+            temp = MFeeprom.read_byte(addrMem++);
             if (addrMem > length)
                 return false;
         }
