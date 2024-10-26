@@ -14,7 +14,6 @@
     "MessageSize": 96
   },
   "HardwareIds": [
-    "^VID_2E8A&PID_F00A",
     "^VID_2E8A&PID_1018"
   ],
   "Info": {
@@ -54,7 +53,7 @@
     "MaxShifters": 6,
     "MaxSteppers": 6,
     "MaxInputMultiplexer": 6,
-    "MaxCustomDevices": 0
+    "MaxCustomDevices": 1
   },
   "Pins": [
     {
