@@ -1,7 +1,7 @@
 {
     "$schema": "./mfdevice.schema.json",
     "Info": {
-      "Label": "Heading Indicator",
+      "Label": "Heading",
       "Type": "Heading_Indicator",
       "Author": "Save Sabanal",
       "URL": "https://github.com/savesabanal01",

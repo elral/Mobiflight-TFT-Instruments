@@ -1,7 +1,7 @@
 {
     "$schema": "./mfdevice.schema.json",
     "Info": {
-      "Label": "Altimeter ESP32-S3",
+      "Label": "Altimeter",
       "Type": "Altimeter",
       "Author": "Save Sabanal",
       "URL": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",

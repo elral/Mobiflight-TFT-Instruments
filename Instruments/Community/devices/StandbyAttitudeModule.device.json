@@ -1,7 +1,7 @@
 {
     "$schema": "./mfdevice.schema.json",
     "Info": {
-      "Label": "Standby Attitude Module ESP32-S3",
+      "Label": "Stdby Att Mod",
       "Type": "StandbyAttitudeModule",
       "Author": "Save Sabanal",
       "URL": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",

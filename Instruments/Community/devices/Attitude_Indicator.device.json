@@ -1,7 +1,7 @@
 {
     "$schema": "./mfdevice.schema.json",
     "Info": {
-      "Label": "Attitude Indicator ESP32-S3",
+      "Label": "Attitude",
       "Type": "Attitude_Indicator",
       "Author": "Save Sabanal",
       "URL": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",

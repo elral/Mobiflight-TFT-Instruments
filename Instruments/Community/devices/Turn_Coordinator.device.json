@@ -1,7 +1,7 @@
 {
     "$schema": "./mfdevice.schema.json",
     "Info": {
-      "Label": "Turn Coordinator ESP32-S3",
+      "Label": "Turn Coord",
       "Type": "Turn_Coordinator",
       "Author": "Save Sabanal",
       "URL": "https://github.com/savesabanal01/Mobiflight-TFT-Instruments",
