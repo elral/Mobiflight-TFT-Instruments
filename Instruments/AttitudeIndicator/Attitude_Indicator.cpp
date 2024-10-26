@@ -179,7 +179,13 @@ namespace AttitudeIndicator
         // pushRotated is not available for DMA, use instead a helper sprite (background)
         // and copy this one as last step rotated to the main sprite
         backgroundSpr->pushRotated(mainSpr, -roll, TFT_BLACK);
+
+        // for now Bodmers lib does not work with DMA for Pico2(B), just for testing...
+#if defined(RP2350_PSRAM_CS)
+        tft->pushImage(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
+#else
         tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
+#endif
     }
 
     void setPitch(float value)

@@ -164,7 +164,12 @@ namespace TurnCoordinator
 
         TCPlaneSpr->pushRotated(TCmainSpr, turnAngle, TFT_BLACK);
 
+        // for now Bodmers lib does not work with DMA for Pico2(B), just for testing...
+#if defined(RP2350_PSRAM_CS)
+        tft->pushImage(instrumentX0, instrumentY0, 320, 320, TCmainSprPtr);
+#else
         tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, TCmainSprPtr);
+#endif
     }
 
     void setTurnAngle(float angle)

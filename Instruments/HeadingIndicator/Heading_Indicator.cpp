@@ -136,14 +136,20 @@ namespace HeadingIndicator
         if (millis() - startLogoMillis < 3000)
             return;
 
+        compassRoseSpr->fillSprite(TFT_BLACK);
+        mainGaugeSpr->fillSprite(TFT_BLACK);
+
         mainGaugeSpr->pushImage(0, 0, 320, 320, main_gauge);
         compassRoseSpr->pushImage(0, 0, 320, 320, compass_rose);
         hdgBugSpr->pushRotated(compassRoseSpr, hdgBug, TFT_BLACK);
         compassRoseSpr->pushRotated(mainGaugeSpr, heading, TFT_BLACK);
 
+        // for now Bodmers lib does not work with DMA for Pico2(B), just for testing...
+#if defined(RP2350_PSRAM_CS)
+        tft->pushImage(instrumentX0, instrumentY0, 320, 320, mainGaugeSprPtr);
+#else
         tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainGaugeSprPtr);
-        compassRoseSpr->fillSprite(TFT_BLACK);
-        mainGaugeSpr->fillSprite(TFT_BLACK);
+#endif
     }
 
     void setHeading(float value)

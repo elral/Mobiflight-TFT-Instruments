@@ -358,7 +358,12 @@ namespace StandbyAttitudeMonitor
         drawAttitudeIndicator();
         drawSpeedIndicator();
         drawAltitudeIndicator();
+        // for now Bodmers lib does not work with DMA for Pico2(B), just for testing...
+#if defined(RP2350_PSRAM_CS)
+        tft->pushImage(0, 0, 480, 320, displaySprPtr);
+#else
         tft->pushImageDMA(0, 0, 480, 320, displaySprPtr);
+#endif
     }
 
     /* **********************************************************************************

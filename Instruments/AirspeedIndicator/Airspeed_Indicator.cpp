@@ -132,8 +132,13 @@ namespace AirspeedIndicator
         ASIneedleSpr->fillSprite(TFT_BLACK);
         ASIneedleSpr->pushImage(0, 0, asi_needle_width, asi_needle_height, asi_needle);
         ASIneedleSpr->pushRotated(mainSpr, ASIneedleRotation, TFT_BLACK);
-
+        
+// for now Bodmers lib does not work with DMA for Pico2(B), just for testing...
+#if defined(RP2350_PSRAM_CS)
+        tft->pushImage(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
+#else
         tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
+#endif
     }
 
     void setAirspeed(float value)

@@ -138,7 +138,13 @@ namespace VerticalSpeedIndicator
         VSIAngle = scaleValue(VSIValue, -2000, 2000, 102, 438); // The needle starts at -90 degrees
         VSImainSpr->pushImage(0, 0, 320, 320, vsi_main_gauge);
         VSINeedleSpr->pushRotated(VSImainSpr, VSIAngle, TFT_BLACK);
+
+        // for now Bodmers lib does not work with DMA for Pico2(B), just for testing...
+#if defined(RP2350_PSRAM_CS)
+        tft->pushImage(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
+#else
         tft->pushImageDMA(instrumentX0, instrumentY0, 320, 320, mainSprPtr);
+#endif
     }
 
     void setVerticalSpeed(float value)
