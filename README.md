@@ -1,8 +1,7 @@
 ﻿# Mobiflight-TFT-Instruments
 
 ## Set up platformIO
-To use all Flash and PSRAM from the ESP32-S3-devkitc-1 with 16MB flash and 8MB PSRAM, copy the file `esp32-s3-devkitc-1-n16r8v.json` (within the main folder) to `C:\Users\<user>\.platformio\platforms\espressif32\boards\`.
-This is **NOT** done here as in this case the automatic build process on github fails. Instead the required board parameters for this board are defined within the device.ini file. Unfortenutel the define for using the complete 16MB causes a crash for some reason. So still 8MB flash are used. The FW still fits in this size.
+To use all Flash and PSRAM from the ESP32-S3-devkitc-1 with 16MB flash and 8MB PSRAM, the required defines are part of `Instruments_platformio.ini` (see `board_build.xyz` and `board_upload.xyz`). So no need anymore to copy `boad.json` files as mentioned before.
 
 ## additional branches
 Two branches are included:
